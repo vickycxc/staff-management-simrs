@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express';
 import prisma from '../lib/prisma.ts';
 import bcrypt from 'bcryptjs';
+import { generateToken } from '../lib/jwt.ts';
 
 export const masuk = async (req: Request, res: Response) => {
     if (!req.body) {
@@ -23,14 +24,15 @@ export const masuk = async (req: Request, res: Response) => {
             return res.status(404).json({ pesanError: "PENGGUNA_TIDAK_DITEMUKAN" });
         }
 
-        const { password: penggunaPassword, ...userWithoutPassword } = pengguna;
-        const isPasswordCorrect = await bcrypt.compare(password, penggunaPassword) ;
+        const { password: passwordPengguna, ...penggunaTanpaPassword } = pengguna;
+        const isPasswordCorrect = await bcrypt.compare(password, passwordPengguna) ;
         if (!isPasswordCorrect) {
             return res.status(401).json({ pesanError: "PASSWORD_SALAH" });
         }
+        generateToken(penggunaTanpaPassword.id);
         return res.status(200).json({
-            penggunaPassword
-            
+            pengguna: penggunaTanpaPassword,
+            pesan: "MASUK_BERHASIL",
 
         });
     } catch (error) {
