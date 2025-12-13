@@ -1,8 +1,8 @@
 import express from 'express';
-import { masuk } from '../controller/auth.controller.ts';
+import { masuk, daftar } from '../controller/auth.controller.ts';
 
 const router = express.Router();
 router.post('/masuk',masuk);
-//router.post('/register', register);
+router.post('/daftar', daftar);
 
 export default router;

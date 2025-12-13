@@ -3,6 +3,7 @@ import prisma from '../lib/prisma.ts';
 import bcrypt from 'bcryptjs';
 import { generateToken } from '../lib/jwt.ts';
 
+//Masuk
 export const masuk = async (req: Request, res: Response) => {
     if (!req.body) {
         return res.status(400).json({ pesanError: "TIDAK_ADA_HEADER" });
@@ -40,3 +41,41 @@ export const masuk = async (req: Request, res: Response) => {
         return res.status(500).json({ pesanError: "INTERNAL_ERROR" });
     }
 }
+
+//Daftar
+export const daftar = async (req: Request, res: Response) => {
+    const { id, nama, nip, password } = req.body;
+    try {
+        if (!id || !nama || !nip || !password) {
+            return res.status(400).json({ pesanError: "Gagal membuat akun, semua field harus diisi" });
+        }
+        if (password.length < 6) {
+            return res.status(400).json({ pesanError: "Password harus memiliki minimal 6 karakter" });
+        }
+        const pengguna = await prisma.pengguna.findUnique({
+             where: { 
+                id 
+            } });
+        if (pengguna) {
+            return res.status(409).json({ pesanError: "ID_SUDAH_DIGUNAKAN" });
+        }
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+
+        const penggunaBaru = await prisma.pengguna.create({
+            data: {
+                id,
+                nama,  
+                nip,
+                password: hashedPassword,
+            },
+        });
+        const { password: _, ...penggunaTanpaPassword } = penggunaBaru;
+        return res.status(201).json({
+            pengguna: penggunaTanpaPassword,
+            pesan: "DAFTAR_BERHASIL",
+        });
+    } catch (error) {
+        console.error();
+        return res.status(500).json({ pesanError: "INTERNAL_ERROR" });
+    }}
