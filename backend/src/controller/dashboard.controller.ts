@@ -3,7 +3,7 @@ import prisma from '../lib/prisma.ts';
 
 export const getDashboardData = async (req: Request, res: Response) => {
     try {
-        const penggunaCount = await prisma.pengguna.count();
+        const penggunaCount = await prisma.admin.count();
         return res.status(200).json({ penggunaCount });
     } catch (error) {
         console.error("Error di getDashboardData controller:", error);
@@ -11,47 +11,47 @@ export const getDashboardData = async (req: Request, res: Response) => {
     }
 };
 
-export const totalPerawat = async (req: Request, res: Response) => {   
+export const getPerawatDanBidan = async (req: Request, res: Response) => {   
     try {
-        const count = await prisma.pengguna.count({
-            where: { peran: 'PERAWAT' }
+        const perawatDanBidan = await prisma.staff.findMany({
+            where: { peran: 'PERAWAT_DAN_BIDAN' }
         });
-        return res.status(200).json({ totalPerawat: count });
+        return res.status(200).json({ getPerawatDanBidan: perawatDanBidan });
     } catch (error) {
-        console.error("Error di totalPerawat controller:", error);
+        console.error("Error di getPerawatDanBidan controller:", error);
         return res.status(500).json({ pesanError: "INTERNAL_ERROR" });
     }
 };
-export const totalPenunjangMedis = async (req: Request, res: Response) => {   
+export const getPenunjangMedis = async (req: Request, res: Response) => {   
     try {
-        const count = await prisma.pengguna.count({
+        const PenunjangMedis = await prisma.staff.findMany({
             where: { peran: 'PENUNJANG_MEDIS' }
         });
-        return res.status(200).json({ totalPenunjangMedis: count });
+        return res.status(200).json({ getPenunjangMedis: PenunjangMedis });
     } catch (error) {
-        console.error("Error di totalPenunjangMedis controller:", error);
+        console.error("Error di getPenunjangMedis controller:", error);
         return res.status(500).json({ pesanError: "INTERNAL_ERROR" });
     }
 };
-export const totalUmum = async (req: Request, res: Response) => {   
+export const getNonMedis = async (req: Request, res: Response) => {   
     try {
-        const count = await prisma.pengguna.count({
-            where: { peran: 'UMUM' }
+        const NonMedis = await prisma.staff.findMany({
+            where: { peran: 'NON_MEDIS' }
         });
-        return res.status(200).json({ totalUmum: count });
+        return res.status(200).json({ getNonMedis: NonMedis });
     } catch (error) {
-        console.error("Error di totalUmum controller:", error);
+        console.error("Error di getNonMedis controller:", error);
         return res.status(500).json({ pesanError: "INTERNAL_ERROR" });
     }
 };
-export const totalDinas = async (req: Request, res: Response) => {   
+export const getMedis = async (req: Request, res: Response) => {   
     try {
-        const count = await prisma.pengguna.count({
-            where: { peran: 'DINAS' }
+        const Medis = await prisma.staff.findMany({
+            where: { peran: 'MEDIS' }
         });
-        return res.status(200).json({ totalDinas: count });
+        return res.status(200).json({ getMedis: Medis });
     } catch (error) {
-        console.error("Error di totalDinas controller:", error);
+        console.error("Error di getMedis controller:", error);
         return res.status(500).json({ pesanError: "INTERNAL_ERROR" });
     }
 };

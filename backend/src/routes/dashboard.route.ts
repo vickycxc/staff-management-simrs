@@ -1,5 +1,5 @@
 import express from 'express';
-import { totalPerawat, totalPenunjangMedis, totalUmum, totalDinas, shiftPagi, shiftSore, shiftMalam } from '../controller/dashboard.controller.ts';
+import { getPerawat, totalPenunjangMedis, totalUmum, totalDinas, shiftPagi, shiftSore, shiftMalam } from '../controller/dashboard.controller.ts';
 
 const router = express.Router();
 router.get('/total-perawat', totalPerawat);

@@ -14,7 +14,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Pengguna {
+model Admin {
   id         Int      @id @default(autoincrement())
   nama       String
   nip        String   
@@ -24,38 +24,69 @@ model Pengguna {
 }
 model Staff {
   id         Int      @id @default(autoincrement()) 
-  id_staff   Int      @unique
-  nama_LkG    String
+  idStaff   Int      @unique
+  namaLkG    String
   nip        String   
-  jenis_Kelamin  JenisKelamin
+  jenisKelamin  jenisKelamin
   alamat     String
-  no_Telp    String
+  noTelp    String
   email      String
-  kategoriPROFESI  kategoriPROFESI
-  kategoriUNITKERJA  kategoriUNITKERJA
-  jabatan_spesfik   String
-  status_kepegawaian kategoriSTATUSKEPEGAWAIAN
+  kategoriProfesi  kategoriProfesi
+  kategoriUnitkerja  kategoriUnitkerja
+  jabatanSpesfik   String
+  statusKepegawaian kategoriStatuskepegawaian
+  peran       peran
+  sip        String?
+  sipUrl     String?
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
-
-}
-model staff_medis {
-  id         Int      @id @default(autoincrement()) 
-  id_staff   Int      @unique
-  nip        String   
-  sip        String
 }
 
-enum JenisKelamin {
+model KinerjaStaff {
+  id         Int      @id @default(autoincrement())
+  targetTB  String
+  targetKP String
+  realisasiTB  String
+  realisasiKP String
+  capaianTB  String
+  capaianKP String
+  integritas  String
+  disiplin   String
+  skpTKP  String
+  skpRealisasi  String
+  skpPredikat  String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+} 
+
+model Diklat {
+  id         Int      @id @default(autoincrement())
+  namaKegiatan String
+  tanggal String
+  jenis String
+  durasi String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+model Direktori
+
+
+enum jenisKelamin {
   LAKI_LAKI
   PEREMPUAN
 }
 
+enum peran {
+  NON_MEDIS
+  MEDIS
+  PENUNJANG_MEDIS
+  PERAWAT_DAN_BIDAN
+}
 
-enum   kategoriPROFESI {
+enum   kategoriProfesi {
   DOKTER_SPESIALIS
   DOKTER_UMUM
-  DOKTER_GIGI
+  DOKTER_GIGI_DAN_MULUT
   PERAWAT
   BIDAN
   FARMASI
@@ -72,7 +103,7 @@ enum   kategoriPROFESI {
   LAYANAN_UMUM
 }
 
-enum  kategoriUNITKERJA {
+enum  kategoriUnitkerja {
   INSTALASI_GAWAT_DARURAT_IGD
   RAWAT_INAP
   POLI_UMUM
@@ -90,27 +121,31 @@ enum  kategoriUNITKERJA {
   POLI_BEDAH_UMUM
   INTENSIVE_CARE_UNIT_ICU_ICCU_HCU_NICU
   GIZI
-  LABORATORIUM
+  LABORATORIUM_PATOLOGI_KLINIK
+  LABORATORIUM_PATOLOGI_ANATOMI
+  BANK_DARAH
   RADIOLOGI
-  FARMASI
+  INSTALASI_FARMASI_RAWAT_JALAN
+  INSTALASI_FARMASI_RAWAT_INAP
   FISIOTERAPI
   REKAM_MEDIS
+  RUANG_SERVER_DAN_IT_SUPPORT
   MANAJEMEN_DAN_ADMIN
   KEUANGAN
-  IT_DAN_SIMRS
+  FRONT_OFFICE
+  BACK_OFFICE
+  HRD_DAN_DIKLAT
   KAMAR_OPERASI_IBS
   KAMAR_BERSALIN
-  INSTALASI_FARMASI
-  MANEJEMEN_DAN_ADMINISTRASI
-  KEUANGAN_DAN_AKUTANSI
-  DIKLAT_DAN_PENGEMBANGAN_SDM
   IPSRS
   KEAMANAN_DAN_KETERTIBAN
-  FRONT_OFFICE_DAN_PENDAFTARAN
-  SANITASI_DAN_LAUNDRY
+  SANITASI_DAN_KEBERSIHAN
+  LAUNDRY
+  SUPIR_AMBULANCE
+  CLEANING_SERVICE
 }
 
-enum kategoriSTATUSKEPEGAWAIAN {
+enum kategoriStatuskepegawaian {
   PEGAWAI_TETAP
   KONTRAK
   MITRA_DOKTER_TAMU
