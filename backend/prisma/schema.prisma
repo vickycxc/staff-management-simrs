@@ -1,0 +1,117 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Pengguna {
+  id         Int      @id @default(autoincrement())
+  nama       String
+  nip        String   
+  password   String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+model Staff {
+  id         Int      @id @default(autoincrement()) 
+  id_staff   Int      @unique
+  nama_LkG    String
+  nip        String   
+  jenis_Kelamin  JenisKelamin
+  alamat     String
+  no_Telp    String
+  email      String
+  kategoriPROFESI  kategoriPROFESI
+  kategoriUNITKERJA  kategoriUNITKERJA
+  jabatan_spesfik   String
+  status_kepegawaian kategoriSTATUSKEPEGAWAIAN
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+}
+model staff_medis {
+  id         Int      @id @default(autoincrement()) 
+  id_staff   Int      @unique
+  nip        String   
+  sip        String
+}
+
+enum JenisKelamin {
+  LAKI_LAKI
+  PEREMPUAN
+}
+
+
+enum   kategoriPROFESI {
+  DOKTER_SPESIALIS
+  DOKTER_UMUM
+  DOKTER_GIGI
+  PERAWAT
+  BIDAN
+  FARMASI
+  LABORATORIUM
+  RADIOLOGI
+  GIZI
+  FISIOTERAPI
+  REKAM_MEDIS
+  MANAJEMEN_DAN_ADMIN
+  KEUANGAN
+  IT_DAN_SIMRS
+  IPSRS
+  KEAMANAN
+  LAYANAN_UMUM
+}
+
+enum  kategoriUNITKERJA {
+  INSTALASI_GAWAT_DARURAT_IGD
+  RAWAT_INAP
+  POLI_UMUM
+  POLI_GIGI_DAN_MULUT
+  POLI_MATA
+  POLI_PENYAKIT_DALAM
+  POLI_OBYN
+  POLI_ANAK
+  POLI_KULIT_DAN_KELAMIN
+  POLI_THT
+  POLI_KEJIWAAN
+  POLI_REHABILITASI_MEDIK
+  POLI_SYARAF
+  POLI_ORTHOPEDI
+  POLI_BEDAH_UMUM
+  INTENSIVE_CARE_UNIT_ICU_ICCU_HCU_NICU
+  GIZI
+  LABORATORIUM
+  RADIOLOGI
+  FARMASI
+  FISIOTERAPI
+  REKAM_MEDIS
+  MANAJEMEN_DAN_ADMIN
+  KEUANGAN
+  IT_DAN_SIMRS
+  KAMAR_OPERASI_IBS
+  KAMAR_BERSALIN
+  INSTALASI_FARMASI
+  MANEJEMEN_DAN_ADMINISTRASI
+  KEUANGAN_DAN_AKUTANSI
+  DIKLAT_DAN_PENGEMBANGAN_SDM
+  IPSRS
+  KEAMANAN_DAN_KETERTIBAN
+  FRONT_OFFICE_DAN_PENDAFTARAN
+  SANITASI_DAN_LAUNDRY
+}
+
+enum kategoriSTATUSKEPEGAWAIAN {
+  PEGAWAI_TETAP
+  KONTRAK
+  MITRA_DOKTER_TAMU
+}
