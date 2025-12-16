@@ -55,3 +55,7 @@ export const getMedis = async (req: Request, res: Response) => {
         return res.status(500).json({ pesanError: "INTERNAL_ERROR" });
     }
 };
+
+// export const getShiftPagi = async (req: Request, res: Response) => {   
+//     try {
+//         const shiftPagi = await prisma.staff.({

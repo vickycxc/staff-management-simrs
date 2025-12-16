@@ -17,14 +17,14 @@ datasource db {
 model Admin {
   id         Int      @id @default(autoincrement())
   nama       String
-  nip        String   
+  email      String   @unique
   password   String
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 }
 model Staff {
   id         Int      @id @default(autoincrement()) 
-  idStaff   Int      @unique
+  kinerjaStaff KinerjaStaff?
   namaLkG    String
   nip        String   
   jenisKelamin  jenisKelamin
@@ -32,24 +32,26 @@ model Staff {
   noTelp    String
   email      String
   kategoriProfesi  kategoriProfesi
-  kategoriUnitkerja  kategoriUnitkerja
-  jabatanSpesfik   String
+  kategoriUnitKerja  kategoriUnitKerja
+  jabatanSpesifik   String
   statusKepegawaian kategoriStatuskepegawaian
   peran       peran
-  sip        String?
   sipUrl     String?
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+  deletedAt DateTime?
 }
 
 model KinerjaStaff {
   id         Int      @id @default(autoincrement())
-  targetTB  String
-  targetKP String
-  realisasiTB  String
-  realisasiKP String
-  capaianTB  String
-  capaianKP String
+  staff Staff @relation(fields: [id], references: [id])
+  diklat Diklat[]
+  targetTimePasienBaru  String
+  targetKepuasanPasien String
+  realisasiTimePasienBaru  String
+  realisasiKepuasanPasien String
+  capaianTimePasienBaru  String
+  capaianKepuasanPasien String
   integritas  String
   disiplin   String
   skpTKP  String
@@ -61,6 +63,8 @@ model KinerjaStaff {
 
 model Diklat {
   id         Int      @id @default(autoincrement())
+  staffId Int
+  kinerjaStaff KinerjaStaff @relation(fields: [staffId], references: [id])
   namaKegiatan String
   tanggal String
   jenis String
@@ -68,8 +72,6 @@ model Diklat {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 }
-model Direktori
-
 
 enum jenisKelamin {
   LAKI_LAKI
@@ -103,7 +105,7 @@ enum   kategoriProfesi {
   LAYANAN_UMUM
 }
 
-enum  kategoriUnitkerja {
+enum  kategoriUnitKerja {
   INSTALASI_GAWAT_DARURAT_IGD
   RAWAT_INAP
   POLI_UMUM

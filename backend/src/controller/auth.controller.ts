@@ -8,17 +8,19 @@ export const masuk = async (req: Request, res: Response) => {
     if (!req.body) {
         return res.status(400).json({ pesanError: "TIDAK_ADA_HEADER" });
     }
-    const { id, password } = req.body;
+    const { email, password } = req.body;
     try {
-        if (!id) {
-            return res.status(400).json({ pesanError: "ID_KOSONG" });
+        if (!email) {
+            return res.status(400).json({ pesanError: "EMAIL_KOSONG" });
         }
         if (!password) {
             return res.status(400).json({ pesanError: "PASSWORD_KOSONG" });
         }
 
         const admin = await prisma.admin.findUnique({
-            where: { id }
+            where: { 
+                email 
+            }
         });
 
         if (!admin) {
@@ -30,11 +32,10 @@ export const masuk = async (req: Request, res: Response) => {
         if (!isPasswordCorrect) {
             return res.status(401).json({ pesanError: "PASSWORD_SALAH" });
         }
-        generateToken(adminTanpaPassword.id);
-        return res.status(200).json({
+        const token = generateToken(adminTanpaPassword.id);
+        return res.status(200).json({ 
             admin: adminTanpaPassword,
-            pesan: "MASUK_BERHASIL",
-
+            token
         });
     } catch (error) {
         console.error("Error di masuk controller:", error);
@@ -44,38 +45,40 @@ export const masuk = async (req: Request, res: Response) => {
 
 //Daftar
 export const daftar = async (req: Request, res: Response) => {
-    const { id, nama, nip, password } = req.body;
+    const { nama, email, password } = req.body;
     try {
-        if (!id || !nama || !nip || !password) {
-            return res.status(400).json({ pesanError: "Gagal membuat akun, semua field harus diisi" });
+        if (!nama || !email || !password) {
+            return res.status(400).json({ pesanError: " TIDAK_LENGKAP" });
         }
         if (password.length < 6) {
-            return res.status(400).json({ pesanError: "Password harus memiliki minimal 6 karakter" });
+            return res.status(400).json({ pesanError: "KURANG_6_KARAKTER" });
         }
-        const admin = await prisma.admin.findUnique({
+        
+        // Check jika email sudah terdaftar
+        const existingAdmin = await prisma.admin.findFirst({
              where: { 
-                id 
-            } });
-        if (admin) {
-            return res.status(409).json({ pesanError: "ID_SUDAH_DIGUNAKAN" });
+                email 
+            } 
+        });
+        if (existingAdmin) {
+            return res.status(409).json({ pesanError: "EMAIL_SUDAH_DIGUNAKAN" });
         }
+        
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
         const adminBaru = await prisma.admin.create({
             data: {
-                id,
                 nama,  
-                nip,
+                email,
                 password: hashedPassword,
             },
         });
         const { password: _, ...adminTanpaPassword } = adminBaru;
-        return res.status(201).json({
-            admin: adminTanpaPassword,
-            pesan: "DAFTAR_BERHASIL",
+            const token = generateToken(adminTanpaPassword.id);
+        return res.status(201).json({admin: adminTanpaPassword, token,
         });
     } catch (error) {
-        console.error();
+        console.error("Error di daftar controller:", error);
         return res.status(500).json({ pesanError: "INTERNAL_ERROR" });
     }}
