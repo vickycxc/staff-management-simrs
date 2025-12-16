@@ -3,7 +3,7 @@ import { getKinerjaStaff } from '../controller/kinerjastaff.controller.ts';
 import { protectRoute, } from '../middleware/auth.middleware.ts'
 
 const router = express.Router();
-router.get('/', protectRoute, getKinerjaStaff);
+router.get('/', getKinerjaStaff);
 
 
 export default router;
