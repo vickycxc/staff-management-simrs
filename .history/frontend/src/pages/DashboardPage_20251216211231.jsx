@@ -31,7 +31,7 @@ const WidgetCard = ({ title, count, icon: Icon, onClick }) => (
     className="bg-white dark:bg-gray-800 p-4 rounded-xl border cursor-pointer hover:shadow"
   >
     <div className="flex items-center gap-3">
-      {Icon && <Icon size={28} />}
+      <Icon size={28} />
       <div>
         <p className="text-sm text-gray-500">{title}</p>
         <p className="text-xl font-bold">{count}</p>
