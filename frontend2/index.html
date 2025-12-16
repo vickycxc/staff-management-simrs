@@ -663,7 +663,19 @@
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div><label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Jabatan</label><input name="role" value={formData.role || ''} onChange={handleChange} className="w-full mt-1 px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white" /></div>
-                                    <div><label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Status</label><div className="relative"><select name="employeeType" value={formData.employeeType || 'Tetap'} onChange={handleChange} className="w-full mt-1 px-4 py-2 border rounded-lg appearance-none dark:bg-gray-700 dark:border-gray-600 dark:text-white"><option value="Tetap">Pegawai Tetap</option><option value="Kontrak">Kontrak (PKWT)</option><option value="Mitra">Mitra (Dokter Tamu)</option></select><div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none"><ChevronDownIcon/></div></div></div>
+                                    <div>
+                                        <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Status</label>
+                                        <div className="relative">
+                                            <select name="employeeType" value={formData.employeeType || 'Tetap'} onChange={handleChange} className="w-full mt-1 px-4 py-2 border rounded-lg appearance-none dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                                                <option value="Tetap">Pegawai Tetap</option>
+                                                <option value="Kontrak">Kontrak (PKWT)</option>
+                                                <option value="Mitra">Mitra (Dokter Tamu)</option>
+                                                <option value="Residen">Residen (PPDS)</option>
+                                                <option value="Magang">Magang (Internship)</option>
+                                            </select>
+                                            <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none"><ChevronDownIcon/></div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             <div className="space-y-5">
@@ -862,14 +874,127 @@
                         </div>
                     </div>
 
-                    <Modal isOpen={!!selectedStaff} onClose={() => setSelectedStaff(null)} title="Detail Data Pegawai">
+                    <Modal isOpen={!!selectedStaff} onClose={() => setSelectedStaff(null)} title="Biodata Pegawai" large={true}>
                         {selectedStaff && (
-                            <div className="space-y-8">
-                                <div className="flex flex-col md:flex-row items-center md:items-start gap-6 border-b border-gray-100 dark:border-gray-700 pb-6"><div className="w-24 h-24 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-3xl font-bold text-gray-400 dark:text-gray-300 shadow-inner">{selectedStaff.name.substring(0,2).toUpperCase()}</div><div className="text-center md:text-left flex-1"><h2 className="text-2xl font-bold text-gray-800 dark:text-white">{selectedStaff.name}</h2><p className="text-[#17B8A5] font-semibold">{selectedStaff.role}</p><div className="flex flex-wrap justify-center md:justify-start gap-2 mt-3"><span className="bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs px-3 py-1 rounded-full border border-gray-200 dark:border-gray-600 font-mono">ID: {selectedStaff.employeeId}</span><span className="bg-[#E8F8F6] dark:bg-teal-900/30 text-[#0F8F80] dark:text-teal-300 text-xs px-3 py-1 rounded-full border border-[#17B8A5]">{selectedStaff.category}</span></div></div></div>
-                                <div className="space-y-4"><h4 className="text-sm font-bold text-gray-400 uppercase tracking-wider border-b border-gray-100 dark:border-gray-700 pb-2 flex items-center gap-2"><User size={16}/> Biodata Diri</h4><div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 text-sm dark:text-gray-300"><div><p className="text-xs text-gray-400">Jenis Kelamin</p><p className="font-semibold">{selectedStaff.gender || '-'}</p></div><div><p className="text-xs text-gray-400">Email</p><p className="font-semibold">{selectedStaff.email || '-'}</p></div><div><p className="text-xs text-gray-400">No. Telepon</p><p className="font-semibold">{selectedStaff.phone || '-'}</p></div><div><p className="text-xs text-gray-400">Alamat</p><p className="font-semibold">{selectedStaff.address || '-'}</p></div></div></div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4"><div className="space-y-4"><h4 className="text-sm font-bold text-gray-400 uppercase tracking-wider border-b border-gray-100 dark:border-gray-700 pb-2 flex items-center gap-2"><Briefcase size={16}/> Pekerjaan</h4><div className="grid grid-cols-2 gap-4 text-sm dark:text-gray-300"><div><p className="text-xs text-gray-400">Unit</p><p className="font-semibold">{selectedStaff.unit}</p></div><div><p className="text-xs text-gray-400">Bergabung</p><p className="font-semibold">{selectedStaff.joinDate}</p></div></div></div>
-                                <div className="space-y-4"><h4 className="text-sm font-bold text-gray-400 uppercase tracking-wider border-b border-gray-100 dark:border-gray-700 pb-2 flex items-center gap-2"><FileText size={16}/> Legalitas</h4>{selectedStaff.sipNumber !== '-' ? (<div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg p-4"><div className="flex items-center gap-2 mb-2"><Briefcase size={16} className="text-yellow-600 dark:text-yellow-500"/><span className="font-bold text-yellow-800 dark:text-yellow-400 text-sm">SIP</span></div><p className="text-sm dark:text-gray-300">No: <strong>{selectedStaff.sipNumber}</strong></p><p className="text-sm dark:text-gray-300">Exp: <strong>{selectedStaff.sipExpiry}</strong></p>{selectedStaff.sipImage && <div className="mt-2 pt-2 border-t border-yellow-200 dark:border-yellow-700"><p className="text-xs text-yellow-700 dark:text-yellow-500 font-bold mb-1">Scan:</p><img src={selectedStaff.sipImage} className="w-full h-auto rounded border border-yellow-300 dark:border-yellow-600"/></div>}</div>) : <div className="text-sm text-gray-400 italic bg-gray-50 dark:bg-gray-800 p-4 rounded text-center">Tidak perlu SIP.</div>}</div></div>
-                                <div className="flex justify-end pt-4 border-t border-gray-100 dark:border-gray-700 gap-3"><button onClick={() => setSelectedStaff(null)} className="px-4 py-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 transition text-sm">Tutup</button><button onClick={() => {setSelectedStaff(null); handleEditClick(selectedStaff);}} className="px-4 py-2 rounded-lg bg-[#17B8A5] text-white hover:bg-[#0F8F80] transition text-sm font-bold shadow-sm flex gap-2 items-center"><Edit size={14}/> Edit Data</button></div>
+                            <div className="p-6 bg-gray-50 dark:bg-gray-900/50 min-h-full">
+                                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                    {/* Left Column: Profile & Contact */}
+                                    <div className="space-y-6">
+                                        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 flex flex-col items-center text-center shadow-sm">
+                                            <div className="w-32 h-32 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-4xl font-bold text-gray-400 dark:text-gray-300 border-4 border-white dark:border-gray-600 shadow-lg mb-4">
+                                                {selectedStaff.name.substring(0,2).toUpperCase()}
+                                            </div>
+                                            <h2 className="text-xl font-bold text-gray-800 dark:text-white">{selectedStaff.name}</h2>
+                                            <p className="text-[#17B8A5] font-medium">{selectedStaff.role}</p>
+                                            <div className="flex gap-2 mt-4 flex-wrap justify-center">
+                                                <span className="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-xs font-mono text-gray-600 dark:text-gray-300">{selectedStaff.employeeId}</span>
+                                                <span className={`px-3 py-1 rounded-full text-xs font-bold ${selectedStaff.status === 'Active' ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' : 'bg-red-100 text-red-700'}`}>{selectedStaff.status}</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
+                                            <h3 className="font-bold text-gray-800 dark:text-white mb-4 flex items-center gap-2 border-b border-gray-100 dark:border-gray-700 pb-2">
+                                                <User size={18} className="text-[#17B8A5]" /> Data Pribadi
+                                            </h3>
+                                            <div className="space-y-4 text-sm">
+                                                <div>
+                                                    <p className="text-xs text-gray-500 dark:text-gray-400 uppercase font-bold">Email</p>
+                                                    <p className="text-gray-700 dark:text-gray-200">{selectedStaff.email || '-'}</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-xs text-gray-500 dark:text-gray-400 uppercase font-bold">Telepon</p>
+                                                    <p className="text-gray-700 dark:text-gray-200">{selectedStaff.phone || '-'}</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-xs text-gray-500 dark:text-gray-400 uppercase font-bold">Jenis Kelamin</p>
+                                                    <p className="text-gray-700 dark:text-gray-200">{selectedStaff.gender || '-'}</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-xs text-gray-500 dark:text-gray-400 uppercase font-bold">Alamat</p>
+                                                    <p className="text-gray-700 dark:text-gray-200">{selectedStaff.address || '-'}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Right Column: Work & Legal */}
+                                    <div className="lg:col-span-2 space-y-6">
+                                        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
+                                            <h3 className="font-bold text-gray-800 dark:text-white mb-4 flex items-center gap-2 border-b border-gray-100 dark:border-gray-700 pb-2">
+                                                <Briefcase size={18} className="text-[#17B8A5]" /> Informasi Kepegawaian
+                                            </h3>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+                                                <div>
+                                                    <p className="text-xs text-gray-500 dark:text-gray-400 uppercase font-bold mb-1">Unit Kerja</p>
+                                                    <p className="font-medium text-gray-800 dark:text-white bg-gray-50 dark:bg-gray-700 p-2 rounded-lg">{selectedStaff.unit}</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-xs text-gray-500 dark:text-gray-400 uppercase font-bold mb-1">Kategori Profesi</p>
+                                                    <p className="font-medium text-gray-800 dark:text-white bg-gray-50 dark:bg-gray-700 p-2 rounded-lg">{selectedStaff.category}</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-xs text-gray-500 dark:text-gray-400 uppercase font-bold mb-1">Status Kepegawaian</p>
+                                                    <p className="font-medium text-gray-800 dark:text-white">{selectedStaff.employeeType}</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-xs text-gray-500 dark:text-gray-400 uppercase font-bold mb-1">Tanggal Bergabung</p>
+                                                    <p className="font-medium text-gray-800 dark:text-white">{selectedStaff.joinDate}</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-xs text-gray-500 dark:text-gray-400 uppercase font-bold mb-1">Shift Saat Ini</p>
+                                                    <div className="flex items-center gap-2 font-medium text-gray-800 dark:text-white">
+                                                        <Clock size={16} className="text-[#17B8A5]" /> {selectedStaff.currentShift}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
+                                            <h3 className="font-bold text-gray-800 dark:text-white mb-4 flex items-center gap-2 border-b border-gray-100 dark:border-gray-700 pb-2">
+                                                <FileText size={18} className="text-[#17B8A5]" /> Legalitas & Dokumen (SIP)
+                                            </h3>
+                                            {selectedStaff.sipNumber && selectedStaff.sipNumber !== '-' ? (
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                    <div className="bg-[#FFFBEB] dark:bg-yellow-900/10 border border-yellow-200 dark:border-yellow-800 rounded-xl p-4">
+                                                        <div className="flex items-center gap-3 mb-2">
+                                                            <Award size={20} className="text-yellow-600 dark:text-yellow-500" />
+                                                            <span className="font-bold text-yellow-800 dark:text-yellow-400 text-sm">Surat Izin Praktik (SIP)</span>
+                                                        </div>
+                                                        <p className="text-xs text-gray-500 dark:text-gray-400 uppercase font-bold mt-2">Nomor Dokumen</p>
+                                                        <p className="font-mono font-bold text-gray-800 dark:text-white text-lg">{selectedStaff.sipNumber}</p>
+                                                        <p className="text-xs text-gray-500 dark:text-gray-400 uppercase font-bold mt-3">Masa Berlaku</p>
+                                                        <p className="font-bold text-red-600 dark:text-red-400">{selectedStaff.sipExpiry}</p>
+                                                    </div>
+                                                    
+                                                    <div className="border border-gray-200 dark:border-gray-700 rounded-xl p-4 flex flex-col items-center justify-center text-center bg-gray-50 dark:bg-gray-800">
+                                                        {selectedStaff.sipImage ? (
+                                                            <div className="w-full h-32 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600 mb-2">
+                                                                <img src={selectedStaff.sipImage} className="w-full h-full object-cover" alt="SIP"/>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="p-3 bg-gray-200 dark:bg-gray-700 rounded-full text-gray-400 mb-2">
+                                                                <ImageIcon size={24} />
+                                                            </div>
+                                                        )}
+                                                        <p className="text-sm font-bold text-gray-700 dark:text-gray-300">Scan Dokumen Fisik</p>
+                                                        <p className="text-xs text-gray-400">{selectedStaff.sipImage ? 'Klik untuk memperbesar' : 'Tidak ada lampiran'}</p>
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <div className="text-center py-8 bg-gray-50 dark:bg-gray-700/30 rounded-xl border border-dashed border-gray-200 dark:border-gray-600">
+                                                    <CheckCircle size={32} className="mx-auto text-green-500/50 mb-2" />
+                                                    <p className="text-gray-500 dark:text-gray-400 text-sm">Profesi ini tidak memerlukan data SIP.</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="flex justify-end gap-3 mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+                                    <button onClick={() => setSelectedStaff(null)} className="px-5 py-2.5 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-white hover:shadow-md dark:hover:bg-gray-700 transition font-bold text-sm">Tutup</button>
+                                    <button onClick={() => {setSelectedStaff(null); handleEditClick(selectedStaff);}} className="px-5 py-2.5 rounded-lg bg-[#17B8A5] text-white hover:bg-[#0F8F80] transition font-bold shadow-md text-sm flex gap-2 items-center">
+                                        <Edit size={16}/> Edit Data
+                                    </button>
+                                </div>
                             </div>
                         )}
                     </Modal>
@@ -879,19 +1004,289 @@
             );
         };
 
+        // --- STAFF FORM (UPDATED WITH STR & NEW FIELDS) ---
         const StaffForm = ({ onAddStaff }) => {
-            const [formData, setFormData] = useState({ employeeId: '', name: '', role: '', unit: '', category: 'Dokter Umum', employeeType: 'Tetap', sipNumber: '', sipExpiry: '', sipImage: null, gender: 'Laki-laki', birthPlace: '', birthDate: '', phone: '', email: '', address: '' });
+            const [formData, setFormData] = useState({ 
+                employeeId: '', name: '', role: '', unit: '', category: 'Dokter Umum', employeeType: 'Tetap', 
+                sipNumber: '', sipExpiry: '', sipImage: null, 
+                gender: 'Laki-laki', 
+                birthPlace: '', birthDate: '', phone: '', email: '', address: '',
+                education: 'S1 Profesi Dokter', joinDate: new Date().toISOString().split('T')[0] // Added Education & JoinDate
+            });
             const [availableUnits, setAvailableUnits] = useState(UNIT_MAPPING['Dokter Umum'] || []);
             const [sipImagePreview, setSipImagePreview] = useState(null);
+            const [profileImagePreview, setProfileImagePreview] = useState(null);
             
-            const handleChange = (e) => { const { name, value } = e.target; if (name === 'category') { const newUnits = UNIT_MAPPING[value] || []; setAvailableUnits(newUnits); setFormData(prev => ({ ...prev, [name]: value, unit: newUnits[0] || '' })); } else { setFormData(prev => ({ ...prev, [name]: value })); } };
-            const handleFileChange = (e) => { const file = e.target.files[0]; if (file) { const objectUrl = URL.createObjectURL(file); setSipImagePreview(objectUrl); setFormData(prev => ({ ...prev, sipImage: objectUrl })); } };
-            const handleSubmit = (e) => { e.preventDefault(); onAddStaff({ ...formData, id: Math.random(), joinDate: new Date().toISOString().split('T')[0], performance: [], skpPoints: 0, currentShift: 'Libur', status: 'Active', kpi: [], behavior: [], discipline: [], training: [], skp: { target: 0, realization: 0, grade: "-" } }); alert("Data Staf Berhasil Disimpan"); };
+            const handleChange = (e) => { 
+                const { name, value } = e.target; 
+                if (name === 'category') { 
+                    const newUnits = UNIT_MAPPING[value] || []; 
+                    setAvailableUnits(newUnits); 
+                    setFormData(prev => ({ ...prev, [name]: value, unit: newUnits[0] || '' })); 
+                } else { 
+                    setFormData(prev => ({ ...prev, [name]: value })); 
+                } 
+            };
+
+            const handleFileChange = (e, type) => { 
+                const file = e.target.files[0]; 
+                if (file) { 
+                    const objectUrl = URL.createObjectURL(file); 
+                    if (type === 'sip') {
+                        setSipImagePreview(objectUrl); 
+                        setFormData(prev => ({ ...prev, sipImage: objectUrl })); 
+                    } else if (type === 'profile') {
+                        setProfileImagePreview(objectUrl);
+                    }
+                } 
+            };
+
+            const handleSubmit = (e) => { 
+                e.preventDefault(); 
+                onAddStaff({ 
+                    ...formData, 
+                    id: Math.random(), 
+                    // joinDate is now taken from formData
+                    performance: [], 
+                    skpPoints: 0, 
+                    currentShift: 'Libur', 
+                    status: 'Active', 
+                    kpi: [], 
+                    behavior: [], 
+                    discipline: [], 
+                    training: [], 
+                    skp: { target: 0, realization: 0, grade: "-" } 
+                }); 
+                alert("Data Staf Berhasil Disimpan"); 
+            };
+
             const ChevronDownIcon = () => <ChevronRight className="rotate-90 text-gray-400" size={16}/>;
             const isMedical = REQUIRED_SIP_DOCS.includes(formData.category);
 
             return (
-                <div className="space-y-6 animate-fade-in"><h2 className="text-2xl font-bold text-[#2C2C2C] dark:text-white">Input Data SDM Baru</h2><div className="grid grid-cols-1 lg:grid-cols-2 gap-8"><div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700"><h3 className="font-bold text-gray-800 dark:text-white mb-6 flex items-center gap-2 border-b dark:border-gray-700 pb-4"><UserPlus size={20} className="text-[#17B8A5]" /> Identitas & Penempatan</h3><div className="space-y-5"><div><label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide">ID Pegawai</label><input name="employeeId" value={formData.employeeId} onChange={handleChange} className="w-full mt-1 px-4 py-2.5 border rounded-lg font-mono dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:border-[#17B8A5]"/></div><div><label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Nama Lengkap</label><input name="name" value={formData.name} onChange={handleChange} className="w-full mt-1 px-4 py-2.5 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:border-[#17B8A5]"/></div><div className="grid grid-cols-2 gap-5"><div><label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Kategori</label><div className="relative"><select name="category" value={formData.category} onChange={handleChange} className="w-full mt-1 px-4 py-2.5 border rounded-lg appearance-none dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:border-[#17B8A5]"><optgroup label="Medis">{JOB_CATEGORIES.MEDIS.map(c => <option key={c} value={c}>{c}</option>)}</optgroup><optgroup label="Keperawatan">{JOB_CATEGORIES.KEPERAWATAN.map(c => <option key={c} value={c}>{c}</option>)}</optgroup><optgroup label="Penunjang">{JOB_CATEGORIES.PENUNJANG.map(c => <option key={c} value={c}>{c}</option>)}</optgroup><optgroup label="Non-Medis">{JOB_CATEGORIES.NON_MEDIS.map(c => <option key={c} value={c}>{c}</option>)}</optgroup></select><div className="absolute right-3 top-1/2 mt-0.5 transform -translate-y-1/2 pointer-events-none"><ChevronDownIcon/></div></div></div><div><label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Unit</label><div className="relative"><select name="unit" value={formData.unit} onChange={handleChange} className="w-full mt-1 px-4 py-2.5 border rounded-lg appearance-none dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:border-[#17B8A5]"><option value="">-- Pilih Unit --</option>{availableUnits.map((u, i) => (<option key={i} value={u}>{u}</option>))}</select><div className="absolute right-3 top-1/2 mt-0.5 transform -translate-y-1/2 pointer-events-none"><ChevronDownIcon/></div></div></div></div><div><label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Jabatan</label><input name="role" value={formData.role} onChange={handleChange} className="w-full mt-1 px-4 py-2.5 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:border-[#17B8A5]"/></div></div></div><div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 h-fit"><h3 className="font-bold text-gray-800 dark:text-white mb-6 flex items-center gap-2 border-b dark:border-gray-700 pb-4"><Briefcase size={20} className="text-[#17B8A5]"/> Legalitas & Biodata</h3>{!isMedical ? (<div className="h-48 flex flex-col items-center justify-center text-gray-400 bg-gray-50 dark:bg-gray-700 rounded-xl text-sm p-6 text-center border-2 border-dashed border-gray-200 dark:border-gray-600"><div className="bg-gray-100 dark:bg-gray-600 p-3 rounded-full mb-3"><CheckCircle size={24} className="text-gray-400 dark:text-gray-300"/></div><p>Kategori <strong>{formData.category}</strong>.</p><p className="text-xs mt-1">Tidak memerlukan input data SIP.</p></div>) : (<div className="space-y-5 animate-fade-in"><div><label className="text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wide">Nomor SIP</label><input name="sipNumber" value={formData.sipNumber} onChange={handleChange} className="w-full mt-1 px-4 py-2.5 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:border-[#17B8A5]"/></div><div><label className="text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wide">Masa Berlaku SIP</label><input type="date" name="sipExpiry" value={formData.sipExpiry} onChange={handleChange} className="w-full mt-1 px-4 py-2.5 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:border-[#17B8A5]"/></div><div className="pt-4 border-t border-gray-100 dark:border-gray-700"><label className="text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wide block mb-2">Upload Scan SIP</label>{sipImagePreview ? <img src={sipImagePreview} className="w-full h-32 object-cover rounded border dark:border-gray-600"/> : <input type="file" accept="image/*" onChange={handleFileChange} className="w-full text-gray-500 dark:text-gray-400"/>}</div></div>)}<button onClick={handleSubmit} className="w-full mt-8 py-3 rounded-xl text-white font-bold bg-[#17B8A5] hover:bg-[#0F8F80]">Simpan Data Pegawai</button></div></div></div>
+                <div className="space-y-6 animate-fade-in max-w-7xl mx-auto pb-10">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                        <div>
+                            <h2 className="text-2xl font-bold text-[#2C2C2C] dark:text-white">Input Data SDM Baru</h2>
+                            <p className="text-gray-500 dark:text-gray-400 text-sm">Lengkapi formulir di bawah ini untuk menambahkan pegawai baru.</p>
+                        </div>
+                        <button onClick={handleSubmit} className="px-6 py-3 rounded-xl text-white font-bold bg-[#17B8A5] hover:bg-[#0F8F80] shadow-lg shadow-teal-500/30 flex items-center gap-2 transition transform hover:-translate-y-1">
+                            <Save size={20}/> Simpan Data
+                        </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        {/* LEFT COLUMN: Profile & Personal */}
+                        <div className="space-y-8">
+                            {/* Profile Image Card */}
+                            <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col items-center text-center">
+                                <div className="relative group cursor-pointer w-32 h-32 mb-4">
+                                    <div className="w-full h-full rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center overflow-hidden border-4 border-white dark:border-gray-600 shadow-md transition-all group-hover:border-[#17B8A5]">
+                                        {profileImagePreview ? (
+                                            <img src={profileImagePreview} className="w-full h-full object-cover" alt="Profile" />
+                                        ) : (
+                                            <User size={48} className="text-gray-300 dark:text-gray-500" />
+                                        )}
+                                    </div>
+                                    <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition duration-200">
+                                        <Camera className="text-white" size={24}/>
+                                    </div>
+                                    <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, 'profile')} className="absolute inset-0 opacity-0 cursor-pointer" />
+                                </div>
+                                <p className="text-sm font-bold text-gray-700 dark:text-gray-200">Foto Profil</p>
+                                <p className="text-xs text-gray-400">Klik untuk upload (Max 2MB)</p>
+                            </div>
+
+                            {/* Personal Data Card */}
+                            <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+                                <h3 className="font-bold text-gray-800 dark:text-white mb-5 flex items-center gap-2 border-b border-gray-100 dark:border-gray-700 pb-3">
+                                    <User size={18} className="text-[#17B8A5]" /> Data Pribadi
+                                </h3>
+                                <div className="space-y-4">
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Tempat Lahir</label>
+                                            <input name="birthPlace" value={formData.birthPlace} onChange={handleChange} className="w-full mt-1 px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#17B8A5]" placeholder="Kota"/>
+                                        </div>
+                                        <div>
+                                            <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Tgl Lahir</label>
+                                            <input type="date" name="birthDate" value={formData.birthDate} onChange={handleChange} className="w-full mt-1 px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#17B8A5]"/>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Jenis Kelamin</label>
+                                        <div className="flex gap-4 mt-1">
+                                            {['Laki-laki', 'Perempuan'].map(g => (
+                                                <label key={g} className="flex items-center gap-2 cursor-pointer group">
+                                                    <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${formData.gender === g ? 'border-[#17B8A5]' : 'border-gray-300'}`}>
+                                                        {formData.gender === g && <div className="w-2 h-2 bg-[#17B8A5] rounded-full"></div>}
+                                                    </div>
+                                                    <input type="radio" name="gender" value={g} checked={formData.gender === g} onChange={handleChange} className="hidden"/>
+                                                    <span className="text-sm dark:text-gray-300 group-hover:text-[#17B8A5] transition-colors">{g}</span>
+                                                </label>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Pendidikan Terakhir</label>
+                                        <div className="relative">
+                                            <select name="education" value={formData.education} onChange={handleChange} className="w-full mt-1 px-3 py-2 border rounded-lg appearance-none dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#17B8A5]">
+                                                {['SMA/SMK', 'D3 Keperawatan', 'D3 Kebidanan', 'D3 Lainnya', 'S1 Keperawatan', 'S1 Kesehatan Masyarakat', 'S1 Profesi Dokter', 'Dokter Spesialis', 'S2/S3'].map(edu => (
+                                                    <option key={edu} value={edu}>{edu}</option>
+                                                ))}
+                                            </select>
+                                            <div className="absolute right-3 top-1/2 mt-0.5 transform -translate-y-1/2 pointer-events-none"><ChevronDownIcon/></div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Email</label>
+                                        <input type="email" name="email" value={formData.email} onChange={handleChange} className="w-full mt-1 px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#17B8A5]" placeholder="email@rs.com"/>
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">No. Telepon</label>
+                                        <input type="tel" name="phone" value={formData.phone} onChange={handleChange} className="w-full mt-1 px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#17B8A5]" placeholder="08..."/>
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Alamat Lengkap</label>
+                                        <textarea name="address" value={formData.address} onChange={handleChange} className="w-full mt-1 px-3 py-2 border rounded-lg h-24 resize-none dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#17B8A5]" placeholder="Alamat sesuai KTP..."></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* RIGHT COLUMN: Job & Legal (Spans 2 cols on large screens) */}
+                        <div className="lg:col-span-2 space-y-8">
+                            {/* Job Data Card */}
+                            <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+                                <h3 className="font-bold text-gray-800 dark:text-white mb-5 flex items-center gap-2 border-b border-gray-100 dark:border-gray-700 pb-3">
+                                    <Briefcase size={18} className="text-[#17B8A5]" /> Data Kepegawaian
+                                </h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="space-y-4">
+                                        <div>
+                                            <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">ID Pegawai (NIP/NIK)</label>
+                                            <input name="employeeId" value={formData.employeeId} onChange={handleChange} className="w-full mt-1 px-4 py-2.5 border rounded-lg font-mono bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:border-[#17B8A5]" placeholder="1990..." />
+                                        </div>
+                                        <div>
+                                            <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Nama Lengkap & Gelar</label>
+                                            <input name="name" value={formData.name} onChange={handleChange} className="w-full mt-1 px-4 py-2.5 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:border-[#17B8A5]" placeholder="dr. Nama Lengkap, Sp.JP"/>
+                                        </div>
+                                        <div>
+                                            <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Jabatan</label>
+                                            <input name="role" value={formData.role} onChange={handleChange} className="w-full mt-1 px-4 py-2.5 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:border-[#17B8A5]" placeholder="Contoh: Staff Pelaksana"/>
+                                        </div>
+                                    </div>
+                                    <div className="space-y-4">
+                                        <div>
+                                            <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Kategori Profesi</label>
+                                            <div className="relative">
+                                                <select name="category" value={formData.category} onChange={handleChange} className="w-full mt-1 px-4 py-2.5 border rounded-lg appearance-none dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:border-[#17B8A5] cursor-pointer">
+                                                    <optgroup label="Medis">{JOB_CATEGORIES.MEDIS.map(c => <option key={c} value={c}>{c}</option>)}</optgroup>
+                                                    <optgroup label="Keperawatan">{JOB_CATEGORIES.KEPERAWATAN.map(c => <option key={c} value={c}>{c}</option>)}</optgroup>
+                                                    <optgroup label="Penunjang">{JOB_CATEGORIES.PENUNJANG.map(c => <option key={c} value={c}>{c}</option>)}</optgroup>
+                                                    <optgroup label="Non-Medis">{JOB_CATEGORIES.NON_MEDIS.map(c => <option key={c} value={c}>{c}</option>)}</optgroup>
+                                                </select>
+                                                <div className="absolute right-3 top-1/2 mt-0.5 transform -translate-y-1/2 pointer-events-none"><ChevronDownIcon/></div>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Unit Penempatan</label>
+                                            <div className="relative">
+                                                <select name="unit" value={formData.unit} onChange={handleChange} className="w-full mt-1 px-4 py-2.5 border rounded-lg appearance-none bg-yellow-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:border-[#17B8A5] cursor-pointer">
+                                                    <option value="">-- Pilih Unit --</option>
+                                                    {availableUnits.map((u, i) => (<option key={i} value={u}>{u}</option>))}
+                                                </select>
+                                                <div className="absolute right-3 top-1/2 mt-0.5 transform -translate-y-1/2 pointer-events-none"><ChevronDownIcon/></div>
+                                            </div>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Status</label>
+                                                <div className="relative">
+                                                    <select name="employeeType" value={formData.employeeType} onChange={handleChange} className="w-full mt-1 px-3 py-2.5 border rounded-lg appearance-none dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:border-[#17B8A5] cursor-pointer">
+                                                        <option value="Tetap">Pegawai Tetap</option>
+                                                        <option value="Kontrak">Kontrak (PKWT)</option>
+                                                        <option value="Mitra">Mitra (Dokter Tamu)</option>
+                                                        <option value="Residen">Residen (PPDS)</option>
+                                                        <option value="Magang">Magang (Internship)</option>
+                                                    </select>
+                                                    <div className="absolute right-3 top-1/2 mt-0.5 transform -translate-y-1/2 pointer-events-none"><ChevronDownIcon/></div>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Tgl Masuk</label>
+                                                <input type="date" name="joinDate" value={formData.joinDate} onChange={handleChange} className="w-full mt-1 px-3 py-2.5 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:border-[#17B8A5]"/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Legal Data Card */}
+                            <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 transition-all duration-500">
+                                <h3 className="font-bold text-gray-800 dark:text-white mb-5 flex items-center gap-2 border-b border-gray-100 dark:border-gray-700 pb-3">
+                                    <FileText size={18} className="text-[#17B8A5]" /> Legalitas & Dokumen
+                                </h3>
+                                {!isMedical ? (
+                                    <div className="flex flex-col items-center justify-center py-8 text-center text-gray-400 bg-gray-50 dark:bg-gray-700/50 rounded-xl border-2 border-dashed border-gray-200 dark:border-gray-600">
+                                        <div className="p-3 bg-gray-100 dark:bg-gray-600 rounded-full mb-3">
+                                            <CheckCircle size={24} className="text-green-500 opacity-70"/>
+                                        </div>
+                                        <p className="text-sm font-medium dark:text-gray-300">Kategori <span className="text-[#17B8A5]">{formData.category}</span></p>
+                                        <p className="text-xs">Tidak memerlukan input data SIP.</p>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-6">
+                                        <div className="bg-yellow-50 dark:bg-yellow-900/10 border border-yellow-200 dark:border-yellow-800 p-4 rounded-lg flex gap-3">
+                                            <AlertTriangle className="text-yellow-600 dark:text-yellow-500 shrink-0" size={20}/>
+                                            <div className="text-sm text-yellow-800 dark:text-yellow-400">
+                                                <p className="font-bold">Wajib Diisi!</p>
+                                                <p className="opacity-90">Tenaga Medis/Kesehatan wajib melengkapi data SIP yang masih berlaku.</p>
+                                            </div>
+                                        </div>
+                                        
+                                        {/* SECTION: SIP */}
+                                        <div>
+                                            <h4 className="text-xs font-bold text-gray-400 uppercase mb-3 flex items-center gap-2"><FileText size={14}/> Surat Izin Praktik (SIP)</h4>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+                                                <div>
+                                                    <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Nomor SIP</label>
+                                                    <input name="sipNumber" value={formData.sipNumber} onChange={handleChange} className="w-full mt-1 px-4 py-2.5 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:border-[#17B8A5]" placeholder="No. SIP..."/>
+                                                </div>
+                                                <div>
+                                                    <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Masa Berlaku SIP</label>
+                                                    <input type="date" name="sipExpiry" value={formData.sipExpiry} onChange={handleChange} className="w-full mt-1 px-4 py-2.5 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:border-[#17B8A5]"/>
+                                                </div>
+                                            </div>
+                                            
+                                            <div>
+                                                <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase block mb-2">Upload Scan SIP</label>
+                                                {sipImagePreview ? (
+                                                    <div className="relative group rounded-xl overflow-hidden border border-gray-200 dark:border-gray-600 w-full md:w-1/2">
+                                                        <img src={sipImagePreview} className="w-full h-48 object-cover" alt="SIP Preview" />
+                                                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition cursor-pointer" onClick={() => document.getElementById('sipUpload').click()}>
+                                                            <p className="text-white font-bold flex items-center gap-2"><Edit size={16}/> Ganti Foto</p>
+                                                        </div>
+                                                        <input id="sipUpload" type="file" accept="image/*" onChange={(e) => handleFileChange(e, 'sip')} className="hidden"/>
+                                                    </div>
+                                                ) : (
+                                                    <label className="flex flex-col items-center justify-center w-full md:w-1/2 h-32 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl cursor-pointer bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 transition">
+                                                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                                                            <Upload size={24} className="text-gray-400 mb-2"/>
+                                                            <p className="text-sm text-gray-500 dark:text-gray-400"><span className="font-semibold">Klik untuk upload</span></p>
+                                                            <p className="text-xs text-gray-500 dark:text-gray-400">JPG, PNG (Max 2MB)</p>
+                                                        </div>
+                                                        <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, 'sip')} className="hidden" />
+                                                    </label>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
             );
         };
 
