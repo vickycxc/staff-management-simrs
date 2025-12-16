@@ -32,7 +32,7 @@ export const masuk = async (req: Request, res: Response) => {
         if (!isPasswordCorrect) {
             return res.status(401).json({ pesanError: "PASSWORD_SALAH" });
         }
-        const token = generateToken(adminTanpaPassword.id);
+        const token = generateToken(adminTanpaPassword.id, res);
         return res.status(200).json({ 
             admin: adminTanpaPassword,
             token
@@ -75,7 +75,7 @@ export const daftar = async (req: Request, res: Response) => {
             },
         });
         const { password: _, ...adminTanpaPassword } = adminBaru;
-            const token = generateToken(adminTanpaPassword.id);
+            const token = generateToken(adminTanpaPassword.id, res);
         return res.status(201).json({admin: adminTanpaPassword, token,
         });
     } catch (error) {
