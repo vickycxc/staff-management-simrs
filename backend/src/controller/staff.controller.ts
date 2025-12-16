@@ -82,6 +82,7 @@ export const addStaff = async (req: Request, res: Response) => {
     const { namaLkG, nip, jenisKelamin, alamat, noTelp, email, kategoriProfesi, kategoriUnitKerja, jabatanSpesifik, statusKepegawaian, peran, sip } = req.body;
     try {
         if (!namaLkG || !nip || !jenisKelamin || !alamat || !noTelp ||  !email || !kategoriProfesi || !kategoriUnitKerja || !jabatanSpesifik || !statusKepegawaian || !peran) {
+            console.log(req.body)
             return res.status(400).json({ pesanError: "TIDAK_LENGKAP" });
         }
 

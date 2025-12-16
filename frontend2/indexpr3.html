@@ -108,7 +108,8 @@
         // ==========================================
         // 1. KONFIGURASI API & MAPPING
         // ==========================================
-        const API_BASE_URL = "https://staff-management-simrs-78e5d8a13f9a.herokuapp.com";
+        // const API_BASE_URL = "https://staff-management-simrs-78e5d8a13f9a.herokuapp.com";
+        const API_BASE_URL = "localhost:3000";
 
         // --- ENUM MAPPINGS (Frontend String <-> Backend Enum) ---
         const MAPPING = {
@@ -708,16 +709,16 @@
                 }
 
                 // API Endpoint
-                const endpoint = isEdit ? '/api/staff/update' : '/api/staff/input';
+                const endpoint = isEdit ? '/api/staff/' : '/api/staff/';
                 const method = isEdit ? 'PUT' : 'POST';
 
                 try {
                     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
                         method: method,
                         headers: {
-                            'x-auth-token': token // Use token from prop
+                            'Content-Type': 'application/json' // Let browser set correct headers
                         },
-                        body: data
+                        body: JSON.stringify(data)
                     });
 
                     const result = await response.json();
