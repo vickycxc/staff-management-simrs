@@ -35,56 +35,32 @@
     </script>
 
     <style>
-        body {
-            font-family: 'Noto Sans', sans-serif;
-        }
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1; 
-        }
-        .dark ::-webkit-scrollbar-track {
-            background: #374151;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #cbd5e1; 
-            border-radius: 4px;
-        }
-        .dark ::-webkit-scrollbar-thumb {
-            background: #4b5563;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8; 
-        }
+        body { font-family: 'Noto Sans', sans-serif; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        .dark ::-webkit-scrollbar-track { background: #374151; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .dark ::-webkit-scrollbar-thumb { background: #4b5563; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         
-        /* Animations */
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px) scale(0.98); }
             to { opacity: 1; transform: translateY(0) scale(1); }
         }
-        .animate-fade-in {
-            animation: fadeIn 0.4s ease-out forwards;
-        }
+        .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
         
-        /* Typing indicator bounce */
-        .typing-dot {
-            animation: bounce 1.4s infinite ease-in-out both;
+        /* Toast Animation */
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
         }
+        .animate-slide-in { animation: slideIn 0.3s ease-out forwards; }
+
+        .typing-dot { animation: bounce 1.4s infinite ease-in-out both; }
         .typing-dot:nth-child(1) { animation-delay: -0.32s; }
         .typing-dot:nth-child(2) { animation-delay: -0.16s; }
-        @keyframes bounce {
-            0%, 80%, 100% { transform: scale(0); }
-            40% { transform: scale(1); }
-        }
-
-        /* Login Background Pattern */
-        .bg-pattern {
-            background-image: radial-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px);
-            background-size: 20px 20px;
-        }
+        @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
+        .bg-pattern { background-image: radial-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px); background-size: 20px 20px; }
     </style>
 </head>
 <body class="bg-[#F7F7F7] text-[#2C2C2C] dark:bg-gray-900 dark:text-gray-100 transition-colors duration-300">
@@ -105,7 +81,10 @@
             EyeOff, AlertCircle
         } from 'https://esm.sh/lucide-react@0.263.1';
 
-        // --- KONFIGURASI KATEGORI PROFESI ---
+        // --- API CONFIGURATION ---
+        const API_URL = 'http://localhost:3001/api';
+
+        // --- CONSTANTS ---
         const JOB_CATEGORIES = {
             MEDIS: ['Dokter Spesialis', 'Dokter Umum', 'Dokter Gigi'],
             KEPERAWATAN: ['Perawat', 'Bidan'],
@@ -113,23 +92,11 @@
             NON_MEDIS: ['Manajemen & Admin', 'Keuangan', 'IT & SIMRS', 'Teknik (IPSRS)', 'Keamanan', 'Layanan Umum']
         };
 
-        // --- MAPPING UNIT KERJA BERDASARKAN KATEGORI (UPDATED) ---
         const UNIT_MAPPING = {
-            'Dokter Spesialis': [
-                "Poli Penyakit Dalam", "Poli Bedah Umum", "Poli Anak", "Poli Kandungan (Obgyn)", 
-                "Poli Mata", "Poli THT", "Poli Saraf", "Poli Jantung", "Poli Kulit & Kelamin",
-                "Poli Kejiwaan", "Poli Rehabilitasi Medik", "Poli Orthopedi",
-                "Rawat Inap Utama", "ICU / ICCU", "Kamar Operasi (IBS)"
-            ],
-            'Dokter Umum': [
-                "Instalasi Gawat Darurat (IGD)", "Poli Umum", "Unit Medical Check Up (MCU)"
-            ],
+            'Dokter Spesialis': ["Poli Penyakit Dalam", "Poli Bedah Umum", "Poli Anak", "Poli Kandungan (Obgyn)", "Poli Mata", "Poli THT", "Poli Saraf", "Poli Jantung", "Poli Kulit & Kelamin", "Poli Kejiwaan", "Poli Rehabilitasi Medik", "Poli Orthopedi", "Rawat Inap Utama", "ICU / ICCU", "Kamar Operasi (IBS)"],
+            'Dokter Umum': ["Instalasi Gawat Darurat (IGD)", "Poli Umum", "Unit Medical Check Up (MCU)"],
             'Dokter Gigi': ["Poli Gigi & Mulut"],
-            'Perawat': [
-                "Instalasi Gawat Darurat (IGD)", "Rawat Inap (Lt 1)", "Rawat Inap (Lt 2)", "Rawat Inap (VIP)",
-                "ICU / ICCU", "Kamar Operasi (IBS)", "Poli Umum", "Poli Spesialis", "Hemodialisa",
-                "Poli Kejiwaan", "Poli Rehabilitasi Medik"
-            ],
+            'Perawat': ["Instalasi Gawat Darurat (IGD)", "Rawat Inap (Lt 1)", "Rawat Inap (Lt 2)", "Rawat Inap (VIP)", "ICU / ICCU", "Kamar Operasi (IBS)", "Poli Umum", "Poli Spesialis", "Hemodialisa", "Poli Kejiwaan", "Poli Rehabilitasi Medik"],
             'Bidan': ["Kamar Bersalin (VK)", "Poli Kandungan (Obgyn)", "Ruang Nifas"],
             'Farmasi': ["Instalasi Farmasi (Depot Rawat Jalan)", "Instalasi Farmasi (Depot Rawat Inap)", "Gudang Farmasi"],
             'Laboratorium': ["Laboratorium Patologi Klinik", "Laboratorium Patologi Anatomi", "Bank Darah"],
@@ -145,114 +112,45 @@
             'Layanan Umum': ["Cleaning Service", "Laundry", "Supir Ambulans", "Sanitasi & Kebersihan"]
         };
 
-        // Profesi WAJIB SIP
-        const REQUIRED_SIP_DOCS = [
-            ...JOB_CATEGORIES.MEDIS,
-            ...JOB_CATEGORIES.KEPERAWATAN,
-            ...JOB_CATEGORIES.PENUNJANG
-        ];
+        const REQUIRED_SIP_DOCS = [...JOB_CATEGORIES.MEDIS, ...JOB_CATEGORIES.KEPERAWATAN, ...JOB_CATEGORIES.PENUNJANG];
 
-        // --- DATA MOCKUP ---
-        const INITIAL_DATA = [
-            { 
-                id: 1, employeeId: "199001012018011001", name: "dr. Andi Pratama, Sp.PD-KGEH", role: "Spesialis Penyakit Dalam", unit: "Poli Penyakit Dalam",
-                category: "Dokter Spesialis", employeeType: "Mitra", joinDate: "2018-05-12", 
-                sipNumber: "503/SIP/2018", sipExpiry: "2024-04-01", 
-                sipImage: "https://via.placeholder.com/600x400?text=Scan+SIP+dr+Andi", 
-                currentShift: "Pagi", performance: [85, 90, 88], skpPoints: 25, status: "Active",
-                gender: "Laki-laki", birthPlace: "Jakarta", birthDate: "1990-01-01", 
-                phone: "0812-3456-7890", email: "andi.pratama@rs.com", address: "Jl. Menteng Raya No. 10, Jakarta Pusat",
-                kpi: [
-                    { indicator: "Respon Time Pasien Baru", target: "< 5 Menit", actual: "3 Menit", score: 95 },
-                    { indicator: "Kepuasan Pasien", target: "90%", actual: "92%", score: 100 }
-                ],
-                behavior: [
-                    { aspect: "Integritas", score: 90, note: "Sangat jujur dan transparan" },
-                    { aspect: "Kedisiplinan", score: 88, note: "Selalu hadir tepat waktu" }
-                ],
-                discipline: [],
-                training: [
-                    { name: "Simposium Penyakit Dalam 2023", date: "2023-05-10", type: "Seminar", duration: "2 Hari" }
-                ],
-                skp: { target: 50, realization: 25, grade: "Baik" }
-            },
-            { 
-                id: 2, employeeId: "199505052022021002", name: "dr. Kevin Sanjaya", role: "Dokter Jaga IGD", unit: "Instalasi Gawat Darurat (IGD)",
-                category: "Dokter Umum", employeeType: "Kontrak", joinDate: "2022-01-15", 
-                sipNumber: "789/SIP/2022", sipExpiry: "2026-01-15",
-                sipImage: null,
-                currentShift: "Malam", performance: [80, 85, 87], skpPoints: 10, status: "Active",
-                 gender: "Laki-laki", birthPlace: "Bandung", birthDate: "1995-05-05", 
-                 phone: "0811-2233-4455", email: "kevin.s@rs.com", address: "Jl. Dago Atas No. 55, Bandung",
-                 kpi: [], behavior: [], discipline: [], training: [], skp: { target: 50, realization: 10, grade: "Cukup" }
-            },
-            { 
-                id: 7, employeeId: "198803102010032001", name: "Ns. Siti Aminah, S.Kep", role: "Kepala Ruangan ICU", unit: "ICU / ICCU",
-                category: "Perawat", employeeType: "Tetap", joinDate: "2010-03-10", 
-                sipNumber: "445/SIK/2019", sipExpiry: "2025-08-20", 
-                sipImage: null,
-                currentShift: "Pagi", performance: [95, 92, 94], skpPoints: 40, status: "Active",
-                gender: "Perempuan", birthPlace: "Surabaya", birthDate: "1988-03-10", 
-                phone: "0813-9876-5432", email: "siti.aminah@rs.com", address: "Jl. Gubeng No. 12, Surabaya",
-                kpi: [], behavior: [], discipline: [], training: [], skp: { target: 50, realization: 40, grade: "Sangat Baik" }
-            },
-            { 
-                id: 10, employeeId: "198902202014022003", name: "apt. Dewi Sartika, S.Farm", role: "Apoteker PJ", unit: "Instalasi Farmasi (Depot Rawat Jalan)",
-                category: "Farmasi", employeeType: "Tetap", joinDate: "2014-02-20", 
-                sipNumber: "111/SIPA/2014", sipExpiry: "2024-02-20", 
-                currentShift: "Pagi", performance: [96, 95], skpPoints: 48, status: "Active",
-                gender: "Perempuan", birthPlace: "Medan", birthDate: "1989-02-20",
-                phone: "0812-1122-3344", email: "dewi.s@rs.com", address: "Jl. Gatot Subroto No. 88",
-                kpi: [], behavior: [], discipline: [], training: [], skp: { target: 50, realization: 48, grade: "Sangat Baik" }
-            },
-            { 
-                id: 20, employeeId: "199801012023011009", name: "Budi Santoso", role: "Danru Security", unit: "Pos Security Utama",
-                category: "Keamanan", employeeType: "Kontrak", joinDate: "2023-01-01", 
-                sipNumber: "-", sipExpiry: "-", 
-                currentShift: "Malam", performance: [88], skpPoints: 0, status: "Active",
-                gender: "Laki-laki", birthPlace: "Bogor", birthDate: "1998-01-01", 
-                phone: "0857-1234-5678", email: "-", address: "Jl. Raya Bogor",
-                kpi: [], behavior: [], discipline: [], training: [], skp: { target: 0, realization: 0, grade: "-" }
-            },
-            { 
-                id: 21, employeeId: "199505152020052008", name: "Rina Admin", role: "Staff Pendaftaran", unit: "Front Office",
-                category: "Manajemen & Admin", employeeType: "Tetap", joinDate: "2020-05-15", 
-                sipNumber: "-", sipExpiry: "-", 
-                currentShift: "Sore", performance: [90], skpPoints: 0, status: "Active",
-                gender: "Perempuan", birthPlace: "Jakarta", birthDate: "1995-05-15", 
-                phone: "0812-9988-7766", email: "rina@rs.com", address: "Jl. Tebet Raya",
-                kpi: [], behavior: [], discipline: [], training: [], skp: { target: 0, realization: 0, grade: "-" }
-            }
-        ];
+        // --- COMPONENTS UTILS ---
+        
+        // Custom Toast Notification
+        const Toast = ({ message, type, onClose }) => {
+            useEffect(() => {
+                const timer = setTimeout(onClose, 3000);
+                return () => clearTimeout(timer);
+            }, [onClose]);
 
-        // ==========================================
-        // 2. KOMPONEN LOGIN (AUTH)
-        // ==========================================
+            const bgClass = type === 'success' ? 'bg-green-600' : 'bg-red-600';
+            const icon = type === 'success' ? <CheckCircle size={20}/> : <AlertTriangle size={20}/>;
 
-        const BrandSidebar = () => (
-            <div className="hidden lg:flex w-1/2 bg-[#17B8A5] relative overflow-hidden flex-col justify-between p-12 text-white h-screen fixed left-0 top-0">
-                <div className="absolute inset-0 bg-pattern opacity-30"></div>
-                <div className="absolute -top-20 -right-20 w-80 h-80 bg-white opacity-10 rounded-full blur-3xl"></div>
-                <div className="absolute bottom-10 left-10 w-40 h-40 bg-teal-900 opacity-20 rounded-full blur-2xl"></div>
+            return (
+                <div className={`fixed top-5 right-5 z-[100] ${bgClass} text-white px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3 animate-slide-in`}>
+                    {icon}
+                    <span className="font-bold text-sm">{message}</span>
+                    <button onClick={onClose}><X size={16}/></button>
+                </div>
+            );
+        };
 
-                <div className="relative z-10 flex items-center gap-3">
-                    <div className="bg-white p-2 rounded-lg text-[#17B8A5]">
-                        <Activity size={32} strokeWidth={2.5} />
+        const Modal = ({ isOpen, onClose, title, children, large = false }) => {
+            if (!isOpen) return null;
+            return (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fade-in">
+                    <div className={`bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full ${large ? 'max-w-4xl' : 'max-w-3xl'} max-h-[90vh] overflow-hidden flex flex-col border border-gray-100 dark:border-gray-700`}>
+                        <div className="flex justify-between items-center p-5 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+                            <h3 className="text-lg font-bold text-gray-800 dark:text-white">{title}</h3>
+                            <button onClick={onClose} className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full text-gray-500 dark:text-gray-400 transition-colors"><X size={20}/></button>
+                        </div>
+                        <div className="p-0 overflow-y-auto flex-1">{children}</div>
                     </div>
-                    <h1 className="text-3xl font-bold tracking-tight">SIMRS <span className="font-light opacity-90">HR</span></h1>
                 </div>
+            );
+        };
 
-                <div className="relative z-10 space-y-6">
-                    <h2 className="text-4xl font-bold leading-tight">Sistem Kepegawaian <br/> Rumah Sakit.</h2>
-                    <p className="text-teal-50 text-lg font-light max-w-md">
-                        Kelola akses masuk staf medis dan administrasi dengan aman dan terintegrasi.
-                    </p>
-                </div>
-
-                <div className="relative z-10 text-xs opacity-60">&copy; 2024 SIMRS HR System.</div>
-            </div>
-        );
-
+        // --- AUTH & LOGIN ---
         const InputField = ({ label, type, placeholder, icon: Icon, value, onChange }) => {
             const [showPass, setShowPass] = useState(false);
             const isPassword = type === 'password';
@@ -261,9 +159,7 @@
                 <div className="space-y-1.5">
                     <label className="text-sm font-semibold text-gray-700">{label}</label>
                     <div className="relative group">
-                        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-[#17B8A5] transition-colors">
-                            <Icon size={18} />
-                        </div>
+                        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-[#17B8A5] transition-colors"><Icon size={18} /></div>
                         <input 
                             type={isPassword && showPass ? 'text' : type}
                             className="w-full pl-10 pr-10 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#17B8A5] bg-gray-50 focus:bg-white text-sm transition-all"
@@ -281,58 +177,74 @@
             );
         };
 
-        const AuthPage = ({ onLogin, registeredUsers, setRegisteredUsers }) => {
+        const AuthPage = ({ onLogin }) => {
             const [isRegister, setIsRegister] = useState(false);
             const [isLoading, setIsLoading] = useState(false);
             const [formData, setFormData] = useState({ name: '', email: '', password: '', confirmPassword: '' });
             const [error, setError] = useState('');
             const [successMsg, setSuccessMsg] = useState('');
 
-            const handleSubmit = (e) => {
+            const handleSubmit = async (e) => {
                 e.preventDefault();
                 setError('');
                 setSuccessMsg('');
                 setIsLoading(true);
 
-                setTimeout(() => {
-                    if (!formData.email || !formData.password) {
-                        setError('Harap isi email dan password.'); 
-                        setIsLoading(false); return;
+                if (!formData.email || !formData.password) {
+                    setError('Harap isi email dan password.'); 
+                    setIsLoading(false); return;
+                }
+
+                try {
+                    const endpoint = isRegister ? '/auth/daftar' : '/auth/masuk';
+                    const payload = isRegister 
+                        ? { name: formData.name, email: formData.email, password: formData.password }
+                        : { email: formData.email, password: formData.password };
+
+                    if (isRegister && formData.password !== formData.confirmPassword) {
+                        setError('Konfirmasi password tidak cocok.'); setIsLoading(false); return;
                     }
 
-                    if (isRegister) {
-                        if (!formData.name) { setError('Nama Lengkap wajib diisi.'); setIsLoading(false); return; }
-                        if (formData.password.length < 6) { setError('Password minimal 6 karakter.'); setIsLoading(false); return; }
-                        if (formData.password !== formData.confirmPassword) { setError('Konfirmasi password tidak cocok.'); setIsLoading(false); return; }
+                    const response = await fetch(`${API_URL}${endpoint}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    
+                    const data = await response.json();
 
-                        const existingUser = registeredUsers.find(u => u.email === formData.email);
-                        if (existingUser) { setError('Email ini sudah terdaftar. Silakan login.'); setIsLoading(false); return; }
-
-                        const newUser = { name: formData.name, email: formData.email, password: formData.password };
-                        setRegisteredUsers([...registeredUsers, newUser]);
-                        setSuccessMsg("Registrasi Berhasil! Silakan masuk.");
-                        setIsRegister(false);
-                        setFormData({ name: '', email: '', password: '', confirmPassword: '' });
-                        setIsLoading(false);
-                    } else {
-                        const foundUser = registeredUsers.find(u => u.email === formData.email && u.password === formData.password);
-                        if (foundUser) {
-                            setIsLoading(false);
-                            onLogin({ name: foundUser.name, email: foundUser.email });
+                    if (response.ok) {
+                        if (isRegister) {
+                            setSuccessMsg("Registrasi Berhasil! Silakan masuk.");
+                            setIsRegister(false);
+                            setFormData({ name: '', email: '', password: '', confirmPassword: '' });
                         } else {
-                            setError('Email atau password salah.');
-                            setIsLoading(false);
+                            onLogin(data.user);
                         }
+                    } else {
+                        setError(data.error || 'Terjadi kesalahan pada server.');
                     }
-                }, 1000);
+                } catch (err) {
+                    setError('Gagal terhubung ke backend.');
+                } finally {
+                    setIsLoading(false);
+                }
             };
 
-            const toggleMode = () => {
-                setIsRegister(!isRegister);
-                setError('');
-                setSuccessMsg('');
-                setFormData({ name: '', email: '', password: '', confirmPassword: '' });
-            };
+            const BrandSidebar = () => (
+                <div className="hidden lg:flex w-1/2 bg-[#17B8A5] relative overflow-hidden flex-col justify-between p-12 text-white h-screen fixed left-0 top-0">
+                    <div className="absolute inset-0 bg-pattern opacity-30"></div>
+                    <div className="relative z-10 flex items-center gap-3">
+                        <div className="bg-white p-2 rounded-lg text-[#17B8A5]"><Activity size={32} strokeWidth={2.5} /></div>
+                        <h1 className="text-3xl font-bold tracking-tight">SIMRS <span className="font-light opacity-90">HR</span></h1>
+                    </div>
+                    <div className="relative z-10 space-y-6">
+                        <h2 className="text-4xl font-bold leading-tight">Sistem Kepegawaian <br/> Rumah Sakit.</h2>
+                        <p className="text-teal-50 text-lg font-light max-w-md">Kelola akses masuk staf medis dan administrasi dengan aman dan terintegrasi.</p>
+                    </div>
+                    <div className="relative z-10 text-xs opacity-60">&copy; 2024 SIMRS HR System.</div>
+                </div>
+            );
 
             return (
                 <div className="min-h-screen flex w-full bg-white lg:bg-[#F7F7F7]">
@@ -343,1106 +255,225 @@
                                 <h2 className="text-3xl font-bold text-gray-800">{isRegister ? 'Buat Akun Baru' : 'Selamat Datang'}</h2>
                                 <p className="text-gray-500 mt-2">{isRegister ? 'Lengkapi data untuk akses SIMRS.' : 'Masuk untuk mengakses dashboard.'}</p>
                             </div>
-
-                            {error && (
-                                <div className="bg-red-50 text-red-600 p-4 rounded-xl text-sm flex items-start gap-3 border border-red-100 animate-fade-in">
-                                    <AlertCircle className="shrink-0 mt-0.5" size={16}/> <span>{error}</span>
-                                </div>
-                            )}
-                            {successMsg && (
-                                <div className="bg-green-50 text-green-700 p-4 rounded-xl text-sm flex items-start gap-3 border border-green-100 animate-fade-in">
-                                    <CheckCircle className="shrink-0 mt-0.5" size={16}/> <span>{successMsg}</span>
-                                </div>
-                            )}
-
+                            {error && <div className="bg-red-50 text-red-600 p-4 rounded-xl text-sm flex items-start gap-3 border border-red-100"><AlertCircle className="shrink-0 mt-0.5" size={16}/> <span>{error}</span></div>}
+                            {successMsg && <div className="bg-green-50 text-green-700 p-4 rounded-xl text-sm flex items-start gap-3 border border-green-100"><CheckCircle className="shrink-0 mt-0.5" size={16}/> <span>{successMsg}</span></div>}
+                            
                             <form onSubmit={handleSubmit} className="space-y-5">
-                                {isRegister && (
-                                    <InputField label="Nama Lengkap" type="text" placeholder="Contoh: dr. Budi Santoso" icon={User} value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
-                                )}
+                                {isRegister && <InputField label="Nama Lengkap" type="text" placeholder="Contoh: dr. Budi Santoso" icon={User} value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />}
                                 <InputField label="Email" type="email" placeholder="nama@rs.com" icon={Mail} value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
                                 <InputField label="Password" type="password" placeholder="Minimal 6 karakter" icon={Lock} value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} />
-                                {isRegister && (
-                                    <InputField label="Konfirmasi Password" type="password" placeholder="Ulangi password" icon={CheckCircle} value={formData.confirmPassword} onChange={e => setFormData({...formData, confirmPassword: e.target.value})} />
-                                )}
-
-                                <button type="submit" disabled={isLoading} className="w-full bg-[#17B8A5] hover:bg-[#129485] text-white font-bold py-3.5 rounded-xl transition-all shadow-lg hover:shadow-teal-500/30 flex items-center justify-center gap-2 mt-6 disabled:opacity-70 disabled:cursor-not-allowed">
-                                    {isLoading ? (
-                                        <span className="flex items-center gap-2"><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div> Memproses...</span>
-                                    ) : (isRegister ? 'Daftar Sekarang' : 'Masuk Dashboard')}
-                                </button>
+                                {isRegister && <InputField label="Konfirmasi Password" type="password" placeholder="Ulangi password" icon={CheckCircle} value={formData.confirmPassword} onChange={e => setFormData({...formData, confirmPassword: e.target.value})} />}
+                                <button type="submit" disabled={isLoading} className="w-full bg-[#17B8A5] hover:bg-[#129485] text-white font-bold py-3.5 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 mt-6 disabled:opacity-70">{isLoading ? 'Memproses...' : (isRegister ? 'Daftar Sekarang' : 'Masuk Dashboard')}</button>
                             </form>
-
-                            <div className="text-center pt-4 border-t border-gray-100 mt-6">
-                                <p className="text-sm text-gray-600">
-                                    {isRegister ? 'Sudah punya akun? ' : 'Belum punya akun? '}
-                                    <button onClick={toggleMode} className="text-[#17B8A5] font-bold hover:underline transition-colors ml-1">
-                                        {isRegister ? 'Masuk sekarang' : 'Daftar di sini'}
-                                    </button>
-                                </p>
-                            </div>
+                            <div className="text-center pt-4 border-t border-gray-100 mt-6"><p className="text-sm text-gray-600">{isRegister ? 'Sudah punya akun? ' : 'Belum punya akun? '}<button onClick={() => {setIsRegister(!isRegister); setError('');}} className="text-[#17B8A5] font-bold hover:underline ml-1">{isRegister ? 'Masuk sekarang' : 'Daftar di sini'}</button></p></div>
                         </div>
                     </div>
                 </div>
             );
         };
 
-        // --- COMPONENTS UTILS ---
-        const Modal = ({ isOpen, onClose, title, children, large = false }) => {
-            if (!isOpen) return null;
-            return (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fade-in">
-                    <div className={`bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full ${large ? 'max-w-4xl' : 'max-w-3xl'} max-h-[90vh] overflow-hidden flex flex-col border border-gray-100 dark:border-gray-700`}>
-                        <div className="flex justify-between items-center p-5 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
-                            <h3 className="text-lg font-bold text-gray-800 dark:text-white">{title}</h3>
-                            <button onClick={onClose} className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full text-gray-500 dark:text-gray-400 transition-colors"><X size={20}/></button>
-                        </div>
-                        <div className="p-0 overflow-y-auto flex-1">{children}</div>
-                    </div>
-                </div>
-            );
-        };
-
-        // --- USER SETTINGS MODAL ---
-        const UserSettingsModal = ({ isOpen, onClose, user, onLogout, currentTheme, onThemeChange }) => {
-            const [activeTab, setActiveTab] = useState('profile');
-            const [tempUser, setTempUser] = useState(user || { name: 'Admin HR', email: 'admin@rs.com' });
-
-            useEffect(() => {
-                if(user) setTempUser(user);
-            }, [user]);
-
-            if (!isOpen) return null;
-
-            return (
-                <Modal isOpen={isOpen} onClose={onClose} title="Pengaturan Akun" large={false}>
-                    <div className="flex h-[400px] flex-col md:flex-row">
-                        {/* Sidebar Settings */}
-                        <div className="w-full md:w-1/3 bg-gray-50 dark:bg-gray-900 border-r border-gray-100 dark:border-gray-700 p-4">
-                            <nav className="space-y-1">
-                                {['profile', 'security', 'theme'].map(tab => (
-                                    <button 
-                                        key={tab} 
-                                        onClick={() => setActiveTab(tab)}
-                                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition capitalize 
-                                            ${activeTab === tab 
-                                                ? 'bg-white dark:bg-gray-700 text-[#17B8A5] shadow-sm' 
-                                                : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 dark:text-gray-400'}`}
-                                    >
-                                        {tab === 'profile' ? <User size={18}/> : tab === 'security' ? <Lock size={18}/> : <Palette size={18}/>} 
-                                        {tab === 'theme' ? 'Tampilan' : tab === 'security' ? 'Keamanan' : 'Profil Saya'}
-                                    </button>
-                                ))}
-                            </nav>
-                            <div className="mt-auto pt-8">
-                                <button onClick={onLogout} className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition">
-                                    <LogOut size={18}/> Keluar Aplikasi
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* Content Settings */}
-                        <div className="flex-1 p-6 overflow-y-auto">
-                            {activeTab === 'profile' && (
-                                <div className="space-y-6">
-                                    <div className="flex items-center gap-6">
-                                        <div className="relative group cursor-pointer">
-                                            <div className="w-20 h-20 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-2xl font-bold text-gray-500 dark:text-gray-300">
-                                                {tempUser.name ? tempUser.name.substring(0,2).toUpperCase() : 'AD'}
-                                            </div>
-                                            <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
-                                                <Camera className="text-white" size={20}/>
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <h4 className="font-bold text-gray-800 dark:text-white">Ganti Foto Profil</h4>
-                                            <p className="text-xs text-gray-500 dark:text-gray-400">JPG, PNG maks 2MB</p>
-                                        </div>
-                                    </div>
-                                    <div className="space-y-4">
-                                        <div>
-                                            <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Nama Lengkap</label>
-                                            <input value={tempUser.name} onChange={e => setTempUser({...tempUser, name: e.target.value})} className="w-full px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg dark:bg-gray-800 dark:text-white focus:outline-none focus:border-[#17B8A5]"/>
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Email</label>
-                                            <input value={tempUser.email} onChange={e => setTempUser({...tempUser, email: e.target.value})} className="w-full px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg dark:bg-gray-800 dark:text-white focus:outline-none focus:border-[#17B8A5]"/>
-                                        </div>
-                                    </div>
-                                    <button className="px-6 py-2 bg-[#17B8A5] text-white rounded-lg font-bold">Simpan</button>
-                                </div>
-                            )}
-
-                            {activeTab === 'security' && (
-                                <div className="space-y-4">
-                                    <div>
-                                        <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Password Lama</label>
-                                        <input type="password" className="w-full px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg dark:bg-gray-800 dark:text-white focus:outline-none focus:border-[#17B8A5]"/>
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Password Baru</label>
-                                        <input type="password" className="w-full px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg dark:bg-gray-800 dark:text-white focus:outline-none focus:border-[#17B8A5]"/>
-                                    </div>
-                                    <button className="px-4 py-2 bg-[#17B8A5] text-white rounded-lg text-sm font-bold shadow-sm hover:bg-[#0F8F80]">Update Password</button>
-                                </div>
-                            )}
-
-                            {activeTab === 'theme' && (
-                                <div className="space-y-6">
-                                    <h4 className="text-gray-800 dark:text-white font-bold">Tema Aplikasi</h4>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div 
-                                            onClick={() => onThemeChange('light')}
-                                            className={`border-2 rounded-xl p-4 cursor-pointer flex flex-col items-center gap-2 transition ${currentTheme === 'light' ? 'border-[#17B8A5] bg-blue-50 dark:bg-gray-700' : 'border-gray-200 dark:border-gray-700 dark:hover:bg-gray-700'}`}
-                                        >
-                                            <Sun className="text-orange-400" size={32}/>
-                                            <span className="font-bold text-sm dark:text-white">Terang</span>
-                                        </div>
-                                        <div 
-                                            onClick={() => onThemeChange('dark')}
-                                            className={`border-2 rounded-xl p-4 cursor-pointer flex flex-col items-center gap-2 transition ${currentTheme === 'dark' ? 'border-[#17B8A5] bg-gray-800' : 'border-gray-200 dark:border-gray-700 dark:hover:bg-gray-700'}`}
-                                        >
-                                            <Moon className="text-indigo-400" size={32}/>
-                                            <span className="font-bold text-sm dark:text-white">Gelap</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </Modal>
-            );
-        };
-
-        // --- ASISTEN HR CERDAS (BARU) ---
-        const SmartHRAssistant = ({ staffData }) => {
-            const [messages, setMessages] = useState([
-                { id: 1, sender: 'bot', text: 'Halo! Saya Asisten HR. Saya bisa membantu mengecek data SIP, shift, atau statistik pegawai. Apa yang ingin Anda ketahui?', quickReplies: ['Cek SIP Expired', 'Siapa Shift Pagi?', 'Total Dokter'] }
-            ]);
-            const [input, setInput] = useState('');
-            const [isTyping, setIsTyping] = useState(false);
-            const scrollRef = useRef(null);
-
-            useEffect(() => scrollRef.current?.scrollIntoView({ behavior: "smooth" }), [messages, isTyping]);
-
-            const handleSend = (text = input) => {
-                if (!text.trim()) return;
-                setMessages(prev => [...prev, { id: Date.now(), sender: 'user', text }]);
-                setInput('');
-                setIsTyping(true);
-
-                // Simple Logic for Bot Response
-                setTimeout(() => {
-                    let response = { text: "Maaf, saya tidak mengerti.", data: null };
-                    const lower = text.toLowerCase();
-
-                    if (lower.includes('sip') || lower.includes('expired')) {
-                        const expired = staffData.filter(s => s.sipExpiry && s.sipExpiry !== '-' && new Date(s.sipExpiry) < new Date(new Date().setMonth(new Date().getMonth() + 6)));
-                        response.text = expired.length > 0 ? `Ditemukan ${expired.length} pegawai dengan SIP mendekati expired.` : "Semua SIP pegawai aman.";
-                        response.data = expired.map(s => ({ title: s.name, desc: `Exp: ${s.sipExpiry}` }));
-                    } else if (lower.includes('shift') || lower.includes('pagi') || lower.includes('sore') || lower.includes('malam')) {
-                         const shiftName = lower.includes('pagi') ? 'Pagi' : lower.includes('sore') ? 'Sore' : 'Malam';
-                         // Handle Office Hour as Pagi
-                        const shift = staffData.filter(s => s.currentShift === shiftName || (shiftName === 'Pagi' && s.currentShift === 'Office Hour'));
-                        response.text = `Ada ${shift.length} pegawai di Shift ${shiftName}.`;
-                        response.data = shift.map(s => ({ title: s.name, desc: `${s.role} - ${s.unit}` }));
-                    } else if (lower.includes('dokter')) {
-                        const docs = staffData.filter(s => s.category.includes('Dokter'));
-                        response.text = `Total ada ${docs.length} dokter terdaftar.`;
-                        response.data = docs.map(s => ({ title: s.name, desc: s.category }));
-                    }
-
-                    setMessages(prev => [...prev, { id: Date.now()+1, sender: 'bot', ...response }]);
-                    setIsTyping(false);
-                }, 800);
-            };
-
-            return (
-                <div className="flex flex-col h-[calc(100vh-140px)] bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden animate-fade-in">
-                    <div className="bg-[#17B8A5] p-4 flex items-center gap-3 text-white shadow-sm">
-                        <div className="p-2 bg-white/20 rounded-full"><Bot size={24}/></div>
-                        <div><h3 className="font-bold">Asisten HR</h3><p className="text-xs opacity-90">Online • AI Support</p></div>
-                    </div>
-                    <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 dark:bg-gray-900">
-                        {messages.map(msg => (
-                            <div key={msg.id} className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}>
-                                <div className={`max-w-[80%] p-3.5 rounded-2xl text-sm ${msg.sender === 'user' ? 'bg-[#17B8A5] text-white rounded-tr-none' : 'bg-white dark:bg-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-600 rounded-tl-none shadow-sm'}`}>
-                                    {msg.text}
-                                </div>
-                                {msg.data && (
-                                    <div className="mt-2 w-[80%] bg-white dark:bg-gray-700 rounded-xl border border-gray-200 dark:border-gray-600 overflow-hidden shadow-sm">
-                                        <div className="max-h-48 overflow-y-auto divide-y divide-gray-100 dark:divide-gray-600">
-                                            {msg.data.map((d, i) => (
-                                                <div key={i} className="p-3 text-sm hover:bg-gray-50 dark:hover:bg-gray-600">
-                                                    <p className="font-bold text-gray-800 dark:text-gray-200">{d.title}</p>
-                                                    <p className="text-xs text-gray-500 dark:text-gray-400">{d.desc}</p>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-                                {msg.quickReplies && (
-                                    <div className="flex flex-wrap gap-2 mt-2">
-                                        {msg.quickReplies.map(r => (
-                                            <button key={r} onClick={() => handleSend(r)} className="text-xs px-3 py-1.5 bg-white dark:bg-gray-700 border border-[#17B8A5] text-[#17B8A5] rounded-full hover:bg-[#F0FDFA] transition">{r}</button>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        ))}
-                        {isTyping && <div className="p-3 bg-white dark:bg-gray-700 rounded-2xl w-16 flex justify-center gap-1"><div className="w-2 h-2 bg-gray-400 rounded-full typing-dot"></div><div className="w-2 h-2 bg-gray-400 rounded-full typing-dot"></div><div className="w-2 h-2 bg-gray-400 rounded-full typing-dot"></div></div>}
-                        <div ref={scrollRef}/>
-                    </div>
-                    <form onSubmit={(e) => {e.preventDefault(); handleSend();}} className="p-4 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 flex gap-2">
-                        <input value={input} onChange={e => setInput(e.target.value)} placeholder="Tanya sesuatu..." className="flex-1 px-4 py-2 border rounded-full dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:border-[#17B8A5]"/>
-                        <button type="submit" className="p-2.5 bg-[#17B8A5] text-white rounded-full hover:bg-[#0F8F80] transition"><Send size={18}/></button>
-                    </form>
-                </div>
-            );
-        };
-
-        // --- EDIT STAFF MODAL ---
-        const EditStaffModal = ({ staff, isOpen, onClose, onSave }) => {
-            const [formData, setFormData] = useState(staff || {});
-            const [availableUnits, setAvailableUnits] = useState([]);
-            const [sipImagePreview, setSipImagePreview] = useState(null);
-
-            useEffect(() => {
-                if (staff) {
-                    setFormData({ ...staff });
-                    setAvailableUnits(UNIT_MAPPING[staff.category] || []);
-                    setSipImagePreview(staff.sipImage || null);
-                }
-            }, [staff]);
-
-            const handleChange = (e) => {
-                const { name, value } = e.target;
-                if (name === 'category') {
-                    const newUnits = UNIT_MAPPING[value] || [];
-                    setAvailableUnits(newUnits);
-                    setFormData(prev => ({ ...prev, [name]: value, unit: newUnits[0] || '' }));
-                } else {
-                    setFormData(prev => ({ ...prev, [name]: value }));
-                }
-            };
-
-            const handleFileChange = (e) => {
-                const file = e.target.files[0];
-                if (file) {
-                    const objectUrl = URL.createObjectURL(file);
-                    setSipImagePreview(objectUrl);
-                    setFormData(prev => ({ ...prev, sipImage: objectUrl }));
-                }
-            };
-
-            const handleRemoveImage = () => {
-                setSipImagePreview(null);
-                setFormData(prev => ({ ...prev, sipImage: null }));
-            };
-
-            const handleSubmit = (e) => {
-                e.preventDefault();
-                onSave(formData);
-            };
-
-            const ChevronDownIcon = () => <ChevronRight className="rotate-90 text-gray-400" size={16}/>;
-            const isMedical = REQUIRED_SIP_DOCS.includes(formData.category);
-
-            if (!isOpen || !staff) return null;
-
-            return (
-                <Modal isOpen={isOpen} onClose={onClose} title={`Edit Data: ${staff.name}`} large={true}>
-                    <form onSubmit={handleSubmit} className="p-6">
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                            <div className="space-y-5">
-                                <h4 className="text-sm font-bold text-[#17B8A5] uppercase tracking-wider border-b border-gray-100 dark:border-gray-700 pb-2">Identitas & Kepegawaian</h4>
-                                <div><label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">ID Pegawai</label><input name="employeeId" value={formData.employeeId || ''} onChange={handleChange} className="w-full mt-1 px-4 py-2 border rounded-lg font-mono bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white" /></div>
-                                <div><label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Nama Lengkap</label><input name="name" value={formData.name || ''} onChange={handleChange} className="w-full mt-1 px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white" /></div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div><label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Kategori</label><div className="relative"><select name="category" value={formData.category || ''} onChange={handleChange} className="w-full mt-1 px-4 py-2 border rounded-lg appearance-none dark:bg-gray-700 dark:border-gray-600 dark:text-white"><optgroup label="Medis">{JOB_CATEGORIES.MEDIS.map(c => <option key={c} value={c}>{c}</option>)}</optgroup><optgroup label="Keperawatan">{JOB_CATEGORIES.KEPERAWATAN.map(c => <option key={c} value={c}>{c}</option>)}</optgroup><optgroup label="Penunjang">{JOB_CATEGORIES.PENUNJANG.map(c => <option key={c} value={c}>{c}</option>)}</optgroup><optgroup label="Non-Medis">{JOB_CATEGORIES.NON_MEDIS.map(c => <option key={c} value={c}>{c}</option>)}</optgroup></select><div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none"><ChevronDownIcon/></div></div></div>
-                                    <div><label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Unit Kerja</label><div className="relative"><select name="unit" value={formData.unit || ''} onChange={handleChange} className="w-full mt-1 px-4 py-2 border rounded-lg appearance-none bg-yellow-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white">{availableUnits.map((u, i) => <option key={i} value={u}>{u}</option>)}</select><div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none"><ChevronDownIcon/></div></div></div>
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div><label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Jabatan</label><input name="role" value={formData.role || ''} onChange={handleChange} className="w-full mt-1 px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white" /></div>
-                                    <div>
-                                        <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Status</label>
-                                        <div className="relative">
-                                            <select name="employeeType" value={formData.employeeType || 'Tetap'} onChange={handleChange} className="w-full mt-1 px-4 py-2 border rounded-lg appearance-none dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-                                                <option value="Tetap">Pegawai Tetap</option>
-                                                <option value="Kontrak">Kontrak (PKWT)</option>
-                                                <option value="Mitra">Mitra (Dokter Tamu)</option>
-                                                <option value="Residen">Residen (PPDS)</option>
-                                                <option value="Magang">Magang (Internship)</option>
-                                            </select>
-                                            <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none"><ChevronDownIcon/></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="space-y-5">
-                                <h4 className="text-sm font-bold text-[#17B8A5] uppercase tracking-wider border-b border-gray-100 dark:border-gray-700 pb-2">Biodata & Legalitas</h4>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div><label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Email</label><input name="email" value={formData.email || ''} onChange={handleChange} className="w-full mt-1 px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white" /></div>
-                                    <div><label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">No. Telepon</label><input name="phone" value={formData.phone || ''} onChange={handleChange} className="w-full mt-1 px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white" /></div>
-                                </div>
-                                <div><label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Alamat</label><textarea name="address" value={formData.address || ''} onChange={handleChange} className="w-full mt-1 px-4 py-2 border rounded-lg h-24 resize-none dark:bg-gray-700 dark:border-gray-600 dark:text-white"></textarea></div>
-                                {isMedical ? (
-                                    <div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg border border-yellow-200 dark:border-yellow-700 mt-4">
-                                        <div className="flex items-center gap-2 mb-3"><Briefcase size={18} className="text-yellow-600 dark:text-yellow-500"/><span className="font-bold text-yellow-800 dark:text-yellow-400 text-sm">Data SIP (Wajib)</span></div>
-                                        <div className="space-y-3">
-                                            <div><label className="text-xs font-bold text-yellow-700 dark:text-yellow-500 uppercase">Nomor SIP</label><input name="sipNumber" value={formData.sipNumber || ''} onChange={handleChange} className="w-full mt-1 px-3 py-2 border border-yellow-300 dark:border-yellow-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white" /></div>
-                                            <div><label className="text-xs font-bold text-yellow-700 dark:text-yellow-500 uppercase">Masa Berlaku</label><input type="date" name="sipExpiry" value={formData.sipExpiry || ''} onChange={handleChange} className="w-full mt-1 px-3 py-2 border border-yellow-300 dark:border-yellow-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white" /></div>
-                                            <div className="pt-2 border-t border-yellow-200 dark:border-yellow-700"><label className="text-xs font-bold text-yellow-700 dark:text-yellow-500 uppercase block mb-2">Dokumen SIP</label>{sipImagePreview ? (<div className="relative mb-2 group"><img src={sipImagePreview} alt="Preview SIP" className="w-full h-32 object-cover rounded-lg border border-yellow-300 bg-white" /><button type="button" onClick={handleRemoveImage} className="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-full shadow-lg hover:bg-red-600 transition-colors" title="Hapus Gambar"><X size={14} /></button></div>) : (<div className="border-2 border-dashed border-yellow-300 dark:border-yellow-600 rounded-lg p-4 text-center bg-white dark:bg-gray-700 hover:bg-yellow-50 dark:hover:bg-gray-600 transition cursor-pointer relative group"><input type="file" accept="image/*" onChange={handleFileChange} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" /><div className="flex flex-col items-center justify-center text-yellow-600 dark:text-yellow-500 group-hover:text-yellow-700"><Upload size={20} className="mb-1"/><span className="text-xs font-medium">Klik untuk Upload</span></div></div>)}</div>
-                                        </div>
-                                    </div>
-                                ) : <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg border border-gray-200 dark:border-gray-600 text-center text-gray-400 text-sm italic">Posisi ini tidak memerlukan input SIP.</div>}
-                            </div>
-                        </div>
-                        <div className="flex justify-end gap-3 mt-8 pt-4 border-t border-gray-100 dark:border-gray-700"><button type="button" onClick={onClose} className="px-5 py-2.5 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 font-medium transition">Batal</button><button type="submit" className="px-5 py-2.5 rounded-lg bg-[#17B8A5] text-white hover:bg-[#0F8F80] font-bold shadow-md flex items-center gap-2 transition"><Save size={18}/> Simpan Perubahan</button></div>
-                    </form>
-                </Modal>
-            );
-        };
-
-        // --- DASHBOARD (RESTORED FULL VERSION) ---
+        // --- DASHBOARD & MODULES ---
         const Dashboard = ({ staffData }) => {
             const [modalData, setModalData] = useState({ isOpen: false, title: '', list: [] });
-            const [showSipModal, setShowSipModal] = useState(false);
-
-            const getSipWarnings = () => {
-                const today = new Date();
-                return staffData.map(staff => {
-                    if (!staff.sipExpiry || staff.sipExpiry === '-') return null;
-                    const sipDate = new Date(staff.sipExpiry);
-                    const diffTime = sipDate - today;
-                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                    let status = '';
-                    if (diffDays <= 30) status = 'red';
-                    else if (diffDays <= 90) status = 'orange';
-                    else if (diffDays <= 180) status = 'yellow';
-                    if (!status) return null;
-                    return { ...staff, warningStatus: status, daysLeft: diffDays };
-                }).filter(Boolean).sort((a,b) => a.daysLeft - b.daysLeft);
-            };
+            
+            const getSipWarnings = () => staffData.map(staff => {
+                if (!staff.sipExpiry || staff.sipExpiry === '-') return null;
+                const sipDate = new Date(staff.sipExpiry);
+                const diffDays = Math.ceil((sipDate - new Date()) / (1000 * 60 * 60 * 24));
+                if (diffDays <= 30) return { ...staff, warningStatus: 'red', daysLeft: diffDays };
+                if (diffDays <= 90) return { ...staff, warningStatus: 'orange', daysLeft: diffDays };
+                if (diffDays <= 180) return { ...staff, warningStatus: 'yellow', daysLeft: diffDays };
+                return null;
+            }).filter(Boolean).sort((a,b) => a.daysLeft - b.daysLeft);
 
             const warningList = getSipWarnings();
-            
-            const getStaffByCategory = (cats) => staffData.filter(s => cats.includes(s.category));
-            const getStaffByShift = (shiftName) => {
-                if (shiftName === 'Pagi') return staffData.filter(s => s.currentShift === 'Pagi' || s.currentShift === 'Office Hour');
-                return staffData.filter(s => s.currentShift === shiftName);
-            };
+            const getCount = (cats) => staffData.filter(s => cats.includes(s.category)).length;
 
-            const openListModal = (title, dataList) => {
-                setModalData({ isOpen: true, title, list: dataList });
-            };
-
-            const WidgetCard = ({ title, count, icon: Icon, colorClass, borderColorClass, onClick }) => (
-                <div onClick={onClick} className={`bg-white dark:bg-gray-800 p-5 rounded-xl shadow-sm border-l-4 ${borderColorClass} cursor-pointer hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group`}>
+            const WidgetCard = ({ title, count, icon: Icon, colorClass, borderColorClass }) => (
+                <div className={`bg-white dark:bg-gray-800 p-5 rounded-xl shadow-sm border-l-4 ${borderColorClass} cursor-pointer hover:shadow-lg hover:-translate-y-1 transition-all group`}>
                     <div className="flex justify-between items-start">
-                        <div><p className="text-gray-500 dark:text-gray-400 text-xs font-bold uppercase tracking-wider">{title}</p><h3 className="text-3xl font-bold text-gray-800 dark:text-white mt-2 group-hover:text-[#17B8A5] transition-colors">{count}</h3></div>
-                        <div className={`p-3 rounded-lg bg-gray-50 dark:bg-gray-700 ${colorClass} group-hover:bg-white transition-colors`}><Icon size={24} /></div>
+                        <div><p className="text-gray-500 dark:text-gray-400 text-xs font-bold uppercase tracking-wider">{title}</p><h3 className="text-3xl font-bold text-gray-800 dark:text-white mt-2">{count}</h3></div>
+                        <div className={`p-3 rounded-lg bg-gray-50 dark:bg-gray-700 ${colorClass}`}><Icon size={24} /></div>
                     </div>
-                    <p className={`text-xs mt-4 font-semibold flex items-center gap-1 ${colorClass.replace('text-', 'text-opacity-80 text-')}`}>Lihat Daftar <ChevronRight size={12}/></p>
                 </div>
             );
 
             return (
                 <div className="space-y-8 animate-fade-in">
                     <div><h2 className="text-2xl font-bold text-[#2C2C2C] dark:text-white">Dashboard Operasional SDM</h2><p className="text-gray-500 dark:text-gray-400 text-sm">Ringkasan data pegawai dan status operasional hari ini.</p></div>
-
                     {warningList.length > 0 && (
-                        <div onClick={() => setShowSipModal(true)} className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-4 rounded-xl flex items-center justify-between cursor-pointer hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors shadow-sm animate-fade-in">
-                            <div className="flex items-center gap-3"><div className="p-2 bg-red-100 dark:bg-red-800 rounded-full text-red-600 dark:text-red-200 animate-pulse"><AlertTriangle size={24} /></div><div><h3 className="font-bold text-red-800 dark:text-red-200 text-lg">Peringatan: {warningList.length} SIP Pegawai Perlu Perhatian</h3><p className="text-red-600 dark:text-red-300 text-sm">Klik di sini untuk melihat daftar pegawai dengan SIP yang akan segera berakhir.</p></div></div>
-                            <div className="flex items-center gap-2 text-red-700 dark:text-red-200 font-bold text-sm bg-white dark:bg-gray-800 px-4 py-2 rounded-lg border border-red-200 dark:border-red-700">Lihat Detail <ChevronRight size={16}/></div>
+                        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-4 rounded-xl flex items-center justify-between shadow-sm">
+                            <div className="flex items-center gap-3"><div className="p-2 bg-red-100 dark:bg-red-800 rounded-full text-red-600 dark:text-red-200 animate-pulse"><AlertTriangle size={24} /></div><div><h3 className="font-bold text-red-800 dark:text-red-200 text-lg">Peringatan: {warningList.length} SIP Pegawai Perlu Perhatian</h3></div></div>
                         </div>
                     )}
-                    
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                        <WidgetCard title="Dokter" count={getStaffByCategory(JOB_CATEGORIES.MEDIS).length} icon={Stethoscope} colorClass="text-[#17B8A5]" borderColorClass="border-[#17B8A5]" onClick={() => openListModal('Daftar Dokter', getStaffByCategory(JOB_CATEGORIES.MEDIS))} />
-                        <WidgetCard title="Perawat & Bidan" count={getStaffByCategory(JOB_CATEGORIES.KEPERAWATAN).length} icon={Users} colorClass="text-pink-500" borderColorClass="border-pink-500" onClick={() => openListModal('Daftar Perawat & Bidan', getStaffByCategory(JOB_CATEGORIES.KEPERAWATAN))} />
-                        <WidgetCard title="Penunjang Medis" count={getStaffByCategory(JOB_CATEGORIES.PENUNJANG).length} icon={Activity} colorClass="text-purple-500" borderColorClass="border-purple-500" onClick={() => openListModal('Daftar Penunjang Medis', getStaffByCategory(JOB_CATEGORIES.PENUNJANG))} />
-                        <WidgetCard title="Non-Medis" count={getStaffByCategory(JOB_CATEGORIES.NON_MEDIS).length} icon={Shield} colorClass="text-gray-600" borderColorClass="border-gray-600" onClick={() => openListModal('Daftar Non-Medis', getStaffByCategory(JOB_CATEGORIES.NON_MEDIS))} />
+                        <WidgetCard title="Dokter" count={getCount(JOB_CATEGORIES.MEDIS)} icon={Stethoscope} colorClass="text-[#17B8A5]" borderColorClass="border-[#17B8A5]" />
+                        <WidgetCard title="Perawat" count={getCount(JOB_CATEGORIES.KEPERAWATAN)} icon={Users} colorClass="text-pink-500" borderColorClass="border-pink-500" />
+                        <WidgetCard title="Penunjang" count={getCount(JOB_CATEGORIES.PENUNJANG)} icon={Activity} colorClass="text-purple-500" borderColorClass="border-purple-500" />
+                        <WidgetCard title="Non-Medis" count={getCount(JOB_CATEGORIES.NON_MEDIS)} icon={Shield} colorClass="text-gray-600" borderColorClass="border-gray-600" />
                     </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div onClick={() => openListModal('Daftar Pegawai Shift Pagi', getStaffByShift('Pagi'))} className="bg-blue-50 dark:bg-gray-800 border border-blue-100 dark:border-gray-700 p-4 rounded-xl flex items-center gap-3 cursor-pointer hover:shadow-md hover:bg-blue-100 dark:hover:bg-gray-700 transition-all">
-                            <div className="p-2 bg-white dark:bg-gray-700 rounded-full text-blue-500"><Sun size={20}/></div>
-                            <div><p className="text-xs text-blue-500 font-bold uppercase">Shift Pagi</p><p className="text-sm font-bold text-gray-700 dark:text-gray-200">07.00 - 15.00</p></div>
-                        </div>
-                        <div onClick={() => openListModal('Daftar Pegawai Shift Sore', getStaffByShift('Sore'))} className="bg-orange-50 dark:bg-gray-800 border border-orange-100 dark:border-gray-700 p-4 rounded-xl flex items-center gap-3 cursor-pointer hover:shadow-md hover:bg-orange-100 dark:hover:bg-gray-700 transition-all">
-                            <div className="p-2 bg-white dark:bg-gray-700 rounded-full text-orange-500"><Cloud size={20}/></div>
-                            <div><p className="text-xs text-orange-500 font-bold uppercase">Shift Sore</p><p className="text-sm font-bold text-gray-700 dark:text-gray-200">15.00 - 23.00</p></div>
-                        </div>
-                        <div onClick={() => openListModal('Daftar Pegawai Shift Malam', getStaffByShift('Malam'))} className="bg-indigo-50 dark:bg-gray-800 border border-indigo-100 dark:border-gray-700 p-4 rounded-xl flex items-center gap-3 cursor-pointer hover:shadow-md hover:bg-indigo-100 dark:hover:bg-gray-700 transition-all">
-                            <div className="p-2 bg-white dark:bg-gray-700 rounded-full text-indigo-600"><Moon size={20}/></div>
-                            <div><p className="text-xs text-indigo-600 font-bold uppercase">Shift Malam</p><p className="text-sm font-bold text-gray-700 dark:text-gray-200">23.00 - 07.00</p></div>
-                        </div>
-                    </div>
-
-                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden border border-gray-200 dark:border-gray-700">
-                        <div className="p-5 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-900">
-                            <h3 className="font-bold text-gray-800 dark:text-white flex items-center gap-2"><AlertTriangle className="text-yellow-600" size={20} /> Monitoring Masa Berlaku SIP</h3>
-                            <span className="bg-red-100 text-red-600 text-xs px-3 py-1 rounded-full font-bold">{warningList.length} Perlu Perhatian</span>
-                        </div>
-                        <div className="p-5">
-                            {warningList.length === 0 ? (
-                                <div className="text-center py-10 flex flex-col items-center justify-center text-gray-400"><CheckCircle size={48} className="mb-2 text-green-500 opacity-50"/><p>Semua SIP Pegawai Aman (> 6 Bulan).</p></div>
-                            ) : (
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    {warningList.map(staff => {
-                                        let bgColor = staff.warningStatus === 'red' ? 'bg-red-50 dark:bg-red-900/20' : staff.warningStatus === 'orange' ? 'bg-orange-50 dark:bg-orange-900/20' : 'bg-yellow-50 dark:bg-yellow-900/20';
-                                        let borderColor = staff.warningStatus === 'red' ? 'border-red-200' : staff.warningStatus === 'orange' ? 'border-orange-200' : 'border-yellow-200';
-                                        let textColor = staff.warningStatus === 'red' ? 'text-red-700' : staff.warningStatus === 'orange' ? 'text-orange-700' : 'text-yellow-700';
-                                        let icon = staff.warningStatus === 'red' ? '🚨' : staff.warningStatus === 'orange' ? '⚠️' : '⚡';
-                                        let label = staff.warningStatus === 'red' ? 'CRITICAL' : staff.warningStatus === 'orange' ? 'WARNING' : 'ATTENTION';
-
-                                        return (
-                                            <div key={staff.id} className={`flex items-center justify-between p-4 border rounded-lg shadow-sm transition-transform hover:scale-[1.01] ${bgColor} ${borderColor}`}>
-                                                <div className="flex items-center gap-4"><div className="text-3xl">{icon}</div><div><p className="font-bold text-gray-800 dark:text-white">{staff.name}</p><div className="flex items-center gap-2 mt-1"><span className={`text-[10px] font-bold px-2 py-0.5 rounded-full bg-white dark:bg-gray-800 border ${borderColor} ${textColor}`}>{label}</span><span className="text-xs text-gray-500 dark:text-gray-400">Exp: {staff.sipExpiry}</span></div></div></div>
-                                                <button onClick={() => openListModal('Detail Pegawai', [staff])} className="text-xs font-semibold underline text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white">Lihat</button>
-                                            </div>
-                                        )
-                                    })}
-                                </div>
-                            )}
-                        </div>
-                    </div>
-
-                    <Modal isOpen={modalData.isOpen} onClose={() => setModalData({...modalData, isOpen: false})} title={modalData.title}>
-                        <div className="overflow-x-auto"><table className="w-full text-sm text-left"><thead className="bg-gray-50 dark:bg-gray-700 font-bold dark:text-gray-200"><tr><th className="p-4">Nama</th><th className="p-4">Unit</th><th className="p-4">Jabatan</th><th className="p-4">Status</th></tr></thead><tbody className="dark:text-gray-200">{modalData.list.map(s => <tr key={s.id} className="border-b dark:border-gray-700"><td className="p-4 font-bold">{s.name}</td><td className="p-4">{s.unit}</td><td className="p-4">{s.role}</td><td className="p-4"><span className="bg-green-100 text-green-700 px-2 py-0.5 rounded text-xs font-bold">Aktif</span></td></tr>)}</tbody></table></div>
-                    </Modal>
-
-                    <Modal isOpen={showSipModal} onClose={() => setShowSipModal(false)} title="Daftar Peringatan SIP Expired" large={true}>
-                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">{warningList.map(staff => (<div key={staff.id} className={`p-4 border rounded-lg shadow-sm flex items-center justify-between ${staff.warningStatus === 'red' ? 'bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-800' : staff.warningStatus === 'orange' ? 'bg-orange-50 dark:bg-orange-900/30 border-orange-200 dark:border-orange-800' : 'bg-yellow-50 dark:bg-yellow-900/30 border-yellow-200 dark:border-yellow-800'}`}><div><p className="font-bold text-gray-800 dark:text-gray-200">{staff.name}</p><p className="text-xs text-gray-500 dark:text-gray-400">{staff.unit}</p><div className="flex items-center gap-2 mt-2"><span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600">{staff.warningStatus === 'red' ? 'CRITICAL' : 'WARNING'}</span><span className="text-xs font-bold text-gray-600 dark:text-gray-400">Exp: {staff.sipExpiry}</span></div></div></div>))}</div>
-                    </Modal>
                 </div>
             );
         };
 
-        // --- STAFF DIRECTORY (RESTORED FULL VERSION) ---
         const StaffDirectory = ({ staffData, onDelete, onUpdate }) => {
-            const [filter, setFilter] = useState('All');
             const [search, setSearch] = useState('');
-            const [openMenuId, setOpenMenuId] = useState(null);
-            const [selectedStaff, setSelectedStaff] = useState(null); 
             const [editingStaff, setEditingStaff] = useState(null);
-            const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-
-            useEffect(() => {
-                const handleClickOutside = () => setOpenMenuId(null);
-                window.addEventListener('click', handleClickOutside);
-                return () => window.removeEventListener('click', handleClickOutside);
-            }, []);
-
-            const handleMenuClick = (e, id) => { e.stopPropagation(); setOpenMenuId(openMenuId === id ? null : id); };
-            const handleRowClick = (staff) => setSelectedStaff(staff);
-            const handleEditClick = (staff) => { setEditingStaff(staff); setIsEditModalOpen(true); setOpenMenuId(null); };
-            const handleSaveEdit = (updatedStaff) => { onUpdate(updatedStaff); setIsEditModalOpen(false); setEditingStaff(null); alert("Data berhasil diperbarui!"); };
-
-            const filteredData = staffData.filter(staff => (filter === 'All' || staff.category === filter) && (staff.name.toLowerCase().includes(search.toLowerCase()) || staff.unit.toLowerCase().includes(search.toLowerCase())));
+            
+            // Filter logic
+            const filteredData = staffData.filter(s => 
+                s.name.toLowerCase().includes(search.toLowerCase()) || 
+                s.unit.toLowerCase().includes(search.toLowerCase())
+            );
 
             return (
                 <div className="space-y-6 animate-fade-in">
-                    <div className="flex flex-col md:flex-row justify-between gap-4 items-end md:items-center">
-                        <div><h2 className="text-2xl font-bold dark:text-white">Direktori Pegawai</h2><p className="text-sm text-gray-500 dark:text-gray-400">Kelola data seluruh pegawai rumah sakit.</p></div>
-                        <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-                            <div className="relative flex-1"><Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} /><input type="text" placeholder="Cari Nama / Unit..." className="w-full pl-10 pr-4 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700 dark:text-white focus:outline-none focus:border-[#17B8A5]" value={search} onChange={(e) => setSearch(e.target.value)}/></div>
-                            <div className="relative"><Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} /><select className="pl-10 pr-8 py-2 border rounded-lg appearance-none dark:bg-gray-800 dark:border-gray-700 dark:text-white focus:outline-none focus:border-[#17B8A5]" value={filter} onChange={(e) => setFilter(e.target.value)}><option value="All">Semua Profesi</option>{Object.keys(JOB_CATEGORIES).map(k => JOB_CATEGORIES[k].map(c => <option key={c} value={c}>{c}</option>))}</select><ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" size={14} /></div>
-                        </div>
+                    <div className="flex justify-between items-center">
+                        <h2 className="text-2xl font-bold dark:text-white">Direktori Pegawai</h2>
+                        <div className="relative"><Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} /><input type="text" placeholder="Cari Nama / Unit..." className="pl-10 pr-4 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700 dark:text-white focus:outline-none focus:border-[#17B8A5]" value={search} onChange={(e) => setSearch(e.target.value)}/></div>
                     </div>
-
-                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-visible border border-gray-200 dark:border-gray-700 min-h-[400px]">
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left">
-                                <thead className="bg-gray-50 dark:bg-gray-700 border-b dark:border-gray-600 dark:text-gray-200"><tr><th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase w-32">ID Pegawai</th><th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Nama & Profesi</th><th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Jabatan & Unit</th><th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Shift</th><th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase text-right">Aksi</th></tr></thead>
-                                <tbody className="divide-y divide-gray-100 dark:divide-gray-700 dark:text-gray-200">{filteredData.map((staff) => {
-                                    let avatarColor = JOB_CATEGORIES.MEDIS.includes(staff.category) ? 'bg-[#17B8A5]' : JOB_CATEGORIES.KEPERAWATAN.includes(staff.category) ? 'bg-blue-400' : 'bg-gray-400';
-                                    return (
-                                        <tr key={staff.id} onClick={() => handleRowClick(staff)} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer group">
-                                            <td className="px-6 py-4 align-top"><span className="font-mono text-xs font-bold text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-600 px-2 py-1 rounded">{staff.employeeId}</span></td>
-                                            <td className="px-6 py-4"><div className="flex items-center gap-3"><div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-sm ${avatarColor}`}>{staff.name.substring(0,2).toUpperCase()}</div><div><p className="font-bold text-gray-800 dark:text-gray-200 text-sm">{staff.name}</p><p className="text-xs text-gray-400">{staff.category}</p></div></div></td>
-                                            <td className="px-6 py-4 align-middle"><p className="text-sm font-bold text-gray-700 dark:text-gray-300">{staff.role}</p><p className="text-xs text-gray-500 dark:text-gray-400">{staff.unit}</p></td>
-                                            <td className="px-6 py-4 align-middle"><span className={`px-3 py-1 text-xs rounded-full font-bold flex w-fit items-center gap-2 ${staff.currentShift === 'Pagi' ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' : 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400'}`}><Clock size={12}/>{staff.currentShift}</span></td>
-                                            <td className="px-6 py-4 text-right relative align-middle">
-                                                <button onClick={(e) => handleMenuClick(e, staff.id)} className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-400 hover:text-gray-700 dark:hover:text-white transition"><MoreVertical size={18} /></button>
-                                                {openMenuId === staff.id && (<div className="absolute right-8 top-8 w-48 bg-white dark:bg-gray-800 shadow-xl rounded-lg border border-gray-100 dark:border-gray-600 z-50 animate-fade-in origin-top-right overflow-hidden"><button onClick={(e) => { e.stopPropagation(); handleRowClick(staff); setOpenMenuId(null); }} className="w-full text-left px-4 py-3 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-3 border-b border-gray-50 dark:border-gray-700"><Eye size={16} className="text-[#17B8A5]"/> Lihat Detail</button><button onClick={(e) => { e.stopPropagation(); handleEditClick(staff); }} className="w-full text-left px-4 py-3 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-3 border-b border-gray-50 dark:border-gray-700"><Edit size={16} className="text-blue-500"/> Edit Data</button><button onClick={(e) => { e.stopPropagation(); onDelete(staff.id); setOpenMenuId(null); }} className="w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900 flex items-center gap-3"><Trash2 size={16}/> Hapus</button></div>)}
-                                            </td>
-                                        </tr>
-                                    )
-                                })}</tbody>
-                            </table>
-                        </div>
+                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+                        <table className="w-full text-left">
+                            <thead className="bg-gray-50 dark:bg-gray-700 border-b dark:border-gray-600 text-gray-500 dark:text-gray-400 font-bold text-xs uppercase"><tr><th className="px-6 py-4">Nama</th><th className="px-6 py-4">Unit</th><th className="px-6 py-4">Jabatan</th><th className="px-6 py-4 text-right">Aksi</th></tr></thead>
+                            <tbody className="divide-y divide-gray-100 dark:divide-gray-700 dark:text-gray-200">{filteredData.map(s => (
+                                <tr key={s.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                                    <td className="px-6 py-4 font-bold">{s.name}</td>
+                                    <td className="px-6 py-4 text-sm">{s.unit}</td>
+                                    <td className="px-6 py-4 text-sm">{s.role}</td>
+                                    <td className="px-6 py-4 text-right flex justify-end gap-2">
+                                        <button onClick={() => onDelete(s.id)} className="text-red-500 hover:bg-red-50 p-2 rounded"><Trash2 size={16}/></button>
+                                    </td>
+                                </tr>
+                            ))}</tbody>
+                        </table>
                     </div>
-
-                    <Modal isOpen={!!selectedStaff} onClose={() => setSelectedStaff(null)} title="Biodata Pegawai" large={true}>
-                        {selectedStaff && (
-                            <div className="p-6 bg-gray-50 dark:bg-gray-900/50 min-h-full">
-                                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                                    {/* Left Column: Profile & Contact */}
-                                    <div className="space-y-6">
-                                        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 flex flex-col items-center text-center shadow-sm">
-                                            <div className="w-32 h-32 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-4xl font-bold text-gray-400 dark:text-gray-300 border-4 border-white dark:border-gray-600 shadow-lg mb-4">
-                                                {selectedStaff.name.substring(0,2).toUpperCase()}
-                                            </div>
-                                            <h2 className="text-xl font-bold text-gray-800 dark:text-white">{selectedStaff.name}</h2>
-                                            <p className="text-[#17B8A5] font-medium">{selectedStaff.role}</p>
-                                            <div className="flex gap-2 mt-4 flex-wrap justify-center">
-                                                <span className="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-xs font-mono text-gray-600 dark:text-gray-300">{selectedStaff.employeeId}</span>
-                                                <span className={`px-3 py-1 rounded-full text-xs font-bold ${selectedStaff.status === 'Active' ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' : 'bg-red-100 text-red-700'}`}>{selectedStaff.status}</span>
-                                            </div>
-                                        </div>
-
-                                        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
-                                            <h3 className="font-bold text-gray-800 dark:text-white mb-4 flex items-center gap-2 border-b border-gray-100 dark:border-gray-700 pb-2">
-                                                <User size={18} className="text-[#17B8A5]" /> Data Pribadi
-                                            </h3>
-                                            <div className="space-y-4 text-sm">
-                                                <div>
-                                                    <p className="text-xs text-gray-500 dark:text-gray-400 uppercase font-bold">Email</p>
-                                                    <p className="text-gray-700 dark:text-gray-200">{selectedStaff.email || '-'}</p>
-                                                </div>
-                                                <div>
-                                                    <p className="text-xs text-gray-500 dark:text-gray-400 uppercase font-bold">Telepon</p>
-                                                    <p className="text-gray-700 dark:text-gray-200">{selectedStaff.phone || '-'}</p>
-                                                </div>
-                                                <div>
-                                                    <p className="text-xs text-gray-500 dark:text-gray-400 uppercase font-bold">Jenis Kelamin</p>
-                                                    <p className="text-gray-700 dark:text-gray-200">{selectedStaff.gender || '-'}</p>
-                                                </div>
-                                                <div>
-                                                    <p className="text-xs text-gray-500 dark:text-gray-400 uppercase font-bold">Alamat</p>
-                                                    <p className="text-gray-700 dark:text-gray-200">{selectedStaff.address || '-'}</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Right Column: Work & Legal */}
-                                    <div className="lg:col-span-2 space-y-6">
-                                        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
-                                            <h3 className="font-bold text-gray-800 dark:text-white mb-4 flex items-center gap-2 border-b border-gray-100 dark:border-gray-700 pb-2">
-                                                <Briefcase size={18} className="text-[#17B8A5]" /> Informasi Kepegawaian
-                                            </h3>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
-                                                <div>
-                                                    <p className="text-xs text-gray-500 dark:text-gray-400 uppercase font-bold mb-1">Unit Kerja</p>
-                                                    <p className="font-medium text-gray-800 dark:text-white bg-gray-50 dark:bg-gray-700 p-2 rounded-lg">{selectedStaff.unit}</p>
-                                                </div>
-                                                <div>
-                                                    <p className="text-xs text-gray-500 dark:text-gray-400 uppercase font-bold mb-1">Kategori Profesi</p>
-                                                    <p className="font-medium text-gray-800 dark:text-white bg-gray-50 dark:bg-gray-700 p-2 rounded-lg">{selectedStaff.category}</p>
-                                                </div>
-                                                <div>
-                                                    <p className="text-xs text-gray-500 dark:text-gray-400 uppercase font-bold mb-1">Status Kepegawaian</p>
-                                                    <p className="font-medium text-gray-800 dark:text-white">{selectedStaff.employeeType}</p>
-                                                </div>
-                                                <div>
-                                                    <p className="text-xs text-gray-500 dark:text-gray-400 uppercase font-bold mb-1">Tanggal Bergabung</p>
-                                                    <p className="font-medium text-gray-800 dark:text-white">{selectedStaff.joinDate}</p>
-                                                </div>
-                                                <div>
-                                                    <p className="text-xs text-gray-500 dark:text-gray-400 uppercase font-bold mb-1">Shift Saat Ini</p>
-                                                    <div className="flex items-center gap-2 font-medium text-gray-800 dark:text-white">
-                                                        <Clock size={16} className="text-[#17B8A5]" /> {selectedStaff.currentShift}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
-                                            <h3 className="font-bold text-gray-800 dark:text-white mb-4 flex items-center gap-2 border-b border-gray-100 dark:border-gray-700 pb-2">
-                                                <FileText size={18} className="text-[#17B8A5]" /> Legalitas & Dokumen (SIP)
-                                            </h3>
-                                            {selectedStaff.sipNumber && selectedStaff.sipNumber !== '-' ? (
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                                    <div className="bg-[#FFFBEB] dark:bg-yellow-900/10 border border-yellow-200 dark:border-yellow-800 rounded-xl p-4">
-                                                        <div className="flex items-center gap-3 mb-2">
-                                                            <Award size={20} className="text-yellow-600 dark:text-yellow-500" />
-                                                            <span className="font-bold text-yellow-800 dark:text-yellow-400 text-sm">Surat Izin Praktik (SIP)</span>
-                                                        </div>
-                                                        <p className="text-xs text-gray-500 dark:text-gray-400 uppercase font-bold mt-2">Nomor Dokumen</p>
-                                                        <p className="font-mono font-bold text-gray-800 dark:text-white text-lg">{selectedStaff.sipNumber}</p>
-                                                        <p className="text-xs text-gray-500 dark:text-gray-400 uppercase font-bold mt-3">Masa Berlaku</p>
-                                                        <p className="font-bold text-red-600 dark:text-red-400">{selectedStaff.sipExpiry}</p>
-                                                    </div>
-                                                    
-                                                    <div className="border border-gray-200 dark:border-gray-700 rounded-xl p-4 flex flex-col items-center justify-center text-center bg-gray-50 dark:bg-gray-800">
-                                                        {selectedStaff.sipImage ? (
-                                                            <div className="w-full h-32 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600 mb-2">
-                                                                <img src={selectedStaff.sipImage} className="w-full h-full object-cover" alt="SIP"/>
-                                                            </div>
-                                                        ) : (
-                                                            <div className="p-3 bg-gray-200 dark:bg-gray-700 rounded-full text-gray-400 mb-2">
-                                                                <ImageIcon size={24} />
-                                                            </div>
-                                                        )}
-                                                        <p className="text-sm font-bold text-gray-700 dark:text-gray-300">Scan Dokumen Fisik</p>
-                                                        <p className="text-xs text-gray-400">{selectedStaff.sipImage ? 'Klik untuk memperbesar' : 'Tidak ada lampiran'}</p>
-                                                    </div>
-                                                </div>
-                                            ) : (
-                                                <div className="text-center py-8 bg-gray-50 dark:bg-gray-700/30 rounded-xl border border-dashed border-gray-200 dark:border-gray-600">
-                                                    <CheckCircle size={32} className="mx-auto text-green-500/50 mb-2" />
-                                                    <p className="text-gray-500 dark:text-gray-400 text-sm">Profesi ini tidak memerlukan data SIP.</p>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="flex justify-end gap-3 mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-                                    <button onClick={() => setSelectedStaff(null)} className="px-5 py-2.5 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-white hover:shadow-md dark:hover:bg-gray-700 transition font-bold text-sm">Tutup</button>
-                                    <button onClick={() => {setSelectedStaff(null); handleEditClick(selectedStaff);}} className="px-5 py-2.5 rounded-lg bg-[#17B8A5] text-white hover:bg-[#0F8F80] transition font-bold shadow-md text-sm flex gap-2 items-center">
-                                        <Edit size={16}/> Edit Data
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-                    </Modal>
-
-                    <EditStaffModal staff={editingStaff} isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} onSave={handleSaveEdit} />
                 </div>
             );
         };
 
-        // --- STAFF FORM (UPDATED WITH STR & NEW FIELDS) ---
-        const StaffForm = ({ onAddStaff }) => {
+        const StaffForm = ({ onAddStaff, showToast }) => {
             const [formData, setFormData] = useState({ 
                 employeeId: '', name: '', role: '', unit: '', category: 'Dokter Umum', employeeType: 'Tetap', 
-                sipNumber: '', sipExpiry: '', sipImage: null, 
-                gender: 'Laki-laki', 
-                birthPlace: '', birthDate: '', phone: '', email: '', address: '',
-                education: 'S1 Profesi Dokter', joinDate: new Date().toISOString().split('T')[0] // Added Education & JoinDate
+                sipNumber: '', sipExpiry: '', gender: 'Laki-laki', birthPlace: '', birthDate: '', phone: '', email: '', address: '', joinDate: new Date().toISOString().split('T')[0]
             });
-            const [availableUnits, setAvailableUnits] = useState(UNIT_MAPPING['Dokter Umum'] || []);
-            const [sipImagePreview, setSipImagePreview] = useState(null);
-            const [profileImagePreview, setProfileImagePreview] = useState(null);
             
-            const handleChange = (e) => { 
-                const { name, value } = e.target; 
-                if (name === 'category') { 
-                    const newUnits = UNIT_MAPPING[value] || []; 
-                    setAvailableUnits(newUnits); 
-                    setFormData(prev => ({ ...prev, [name]: value, unit: newUnits[0] || '' })); 
-                } else { 
-                    setFormData(prev => ({ ...prev, [name]: value })); 
-                } 
-            };
-
-            const handleFileChange = (e, type) => { 
-                const file = e.target.files[0]; 
-                if (file) { 
-                    const objectUrl = URL.createObjectURL(file); 
-                    if (type === 'sip') {
-                        setSipImagePreview(objectUrl); 
-                        setFormData(prev => ({ ...prev, sipImage: objectUrl })); 
-                    } else if (type === 'profile') {
-                        setProfileImagePreview(objectUrl);
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                try {
+                    const res = await fetch(`${API_URL}/staff`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(formData)
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                        onAddStaff(data);
+                        showToast('Data berhasil disimpan!', 'success');
+                    } else {
+                        showToast('Gagal menyimpan data.', 'error');
                     }
-                } 
+                } catch(err) {
+                    showToast('Error koneksi server.', 'error');
+                }
             };
 
-            const handleSubmit = (e) => { 
-                e.preventDefault(); 
-                onAddStaff({ 
-                    ...formData, 
-                    id: Math.random(), 
-                    // joinDate is now taken from formData
-                    performance: [], 
-                    skpPoints: 0, 
-                    currentShift: 'Libur', 
-                    status: 'Active', 
-                    kpi: [], 
-                    behavior: [], 
-                    discipline: [], 
-                    training: [], 
-                    skp: { target: 0, realization: 0, grade: "-" } 
-                }); 
-                alert("Data Staf Berhasil Disimpan"); 
-            };
-
-            const ChevronDownIcon = () => <ChevronRight className="rotate-90 text-gray-400" size={16}/>;
-            const isMedical = REQUIRED_SIP_DOCS.includes(formData.category);
+            const handleChange = (e) => setFormData({...formData, [e.target.name]: e.target.value});
 
             return (
-                <div className="space-y-6 animate-fade-in max-w-7xl mx-auto pb-10">
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                        <div>
-                            <h2 className="text-2xl font-bold text-[#2C2C2C] dark:text-white">Input Data SDM Baru</h2>
-                            <p className="text-gray-500 dark:text-gray-400 text-sm">Lengkapi formulir di bawah ini untuk menambahkan pegawai baru.</p>
-                        </div>
-                        <button onClick={handleSubmit} className="px-6 py-3 rounded-xl text-white font-bold bg-[#17B8A5] hover:bg-[#0F8F80] shadow-lg shadow-teal-500/30 flex items-center gap-2 transition transform hover:-translate-y-1">
-                            <Save size={20}/> Simpan Data
-                        </button>
-                    </div>
-
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                        {/* LEFT COLUMN: Profile & Personal */}
-                        <div className="space-y-8">
-                            {/* Profile Image Card */}
-                            <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col items-center text-center">
-                                <div className="relative group cursor-pointer w-32 h-32 mb-4">
-                                    <div className="w-full h-full rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center overflow-hidden border-4 border-white dark:border-gray-600 shadow-md transition-all group-hover:border-[#17B8A5]">
-                                        {profileImagePreview ? (
-                                            <img src={profileImagePreview} className="w-full h-full object-cover" alt="Profile" />
-                                        ) : (
-                                            <User size={48} className="text-gray-300 dark:text-gray-500" />
-                                        )}
-                                    </div>
-                                    <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition duration-200">
-                                        <Camera className="text-white" size={24}/>
-                                    </div>
-                                    <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, 'profile')} className="absolute inset-0 opacity-0 cursor-pointer" />
-                                </div>
-                                <p className="text-sm font-bold text-gray-700 dark:text-gray-200">Foto Profil</p>
-                                <p className="text-xs text-gray-400">Klik untuk upload (Max 2MB)</p>
-                            </div>
-
-                            {/* Personal Data Card */}
-                            <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-                                <h3 className="font-bold text-gray-800 dark:text-white mb-5 flex items-center gap-2 border-b border-gray-100 dark:border-gray-700 pb-3">
-                                    <User size={18} className="text-[#17B8A5]" /> Data Pribadi
-                                </h3>
-                                <div className="space-y-4">
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Tempat Lahir</label>
-                                            <input name="birthPlace" value={formData.birthPlace} onChange={handleChange} className="w-full mt-1 px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#17B8A5]" placeholder="Kota"/>
-                                        </div>
-                                        <div>
-                                            <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Tgl Lahir</label>
-                                            <input type="date" name="birthDate" value={formData.birthDate} onChange={handleChange} className="w-full mt-1 px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#17B8A5]"/>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Jenis Kelamin</label>
-                                        <div className="flex gap-4 mt-1">
-                                            {['Laki-laki', 'Perempuan'].map(g => (
-                                                <label key={g} className="flex items-center gap-2 cursor-pointer group">
-                                                    <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${formData.gender === g ? 'border-[#17B8A5]' : 'border-gray-300'}`}>
-                                                        {formData.gender === g && <div className="w-2 h-2 bg-[#17B8A5] rounded-full"></div>}
-                                                    </div>
-                                                    <input type="radio" name="gender" value={g} checked={formData.gender === g} onChange={handleChange} className="hidden"/>
-                                                    <span className="text-sm dark:text-gray-300 group-hover:text-[#17B8A5] transition-colors">{g}</span>
-                                                </label>
-                                            ))}
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Pendidikan Terakhir</label>
-                                        <div className="relative">
-                                            <select name="education" value={formData.education} onChange={handleChange} className="w-full mt-1 px-3 py-2 border rounded-lg appearance-none dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#17B8A5]">
-                                                {['SMA/SMK', 'D3 Keperawatan', 'D3 Kebidanan', 'D3 Lainnya', 'S1 Keperawatan', 'S1 Kesehatan Masyarakat', 'S1 Profesi Dokter', 'Dokter Spesialis', 'S2/S3'].map(edu => (
-                                                    <option key={edu} value={edu}>{edu}</option>
-                                                ))}
-                                            </select>
-                                            <div className="absolute right-3 top-1/2 mt-0.5 transform -translate-y-1/2 pointer-events-none"><ChevronDownIcon/></div>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Email</label>
-                                        <input type="email" name="email" value={formData.email} onChange={handleChange} className="w-full mt-1 px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#17B8A5]" placeholder="email@rs.com"/>
-                                    </div>
-                                    <div>
-                                        <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">No. Telepon</label>
-                                        <input type="tel" name="phone" value={formData.phone} onChange={handleChange} className="w-full mt-1 px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#17B8A5]" placeholder="08..."/>
-                                    </div>
-                                    <div>
-                                        <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Alamat Lengkap</label>
-                                        <textarea name="address" value={formData.address} onChange={handleChange} className="w-full mt-1 px-3 py-2 border rounded-lg h-24 resize-none dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#17B8A5]" placeholder="Alamat sesuai KTP..."></textarea>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* RIGHT COLUMN: Job & Legal (Spans 2 cols on large screens) */}
-                        <div className="lg:col-span-2 space-y-8">
-                            {/* Job Data Card */}
-                            <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-                                <h3 className="font-bold text-gray-800 dark:text-white mb-5 flex items-center gap-2 border-b border-gray-100 dark:border-gray-700 pb-3">
-                                    <Briefcase size={18} className="text-[#17B8A5]" /> Data Kepegawaian
-                                </h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="space-y-4">
-                                        <div>
-                                            <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">ID Pegawai (NIP/NIK)</label>
-                                            <input name="employeeId" value={formData.employeeId} onChange={handleChange} className="w-full mt-1 px-4 py-2.5 border rounded-lg font-mono bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:border-[#17B8A5]" placeholder="1990..." />
-                                        </div>
-                                        <div>
-                                            <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Nama Lengkap & Gelar</label>
-                                            <input name="name" value={formData.name} onChange={handleChange} className="w-full mt-1 px-4 py-2.5 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:border-[#17B8A5]" placeholder="dr. Nama Lengkap, Sp.JP"/>
-                                        </div>
-                                        <div>
-                                            <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Jabatan</label>
-                                            <input name="role" value={formData.role} onChange={handleChange} className="w-full mt-1 px-4 py-2.5 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:border-[#17B8A5]" placeholder="Contoh: Staff Pelaksana"/>
-                                        </div>
-                                    </div>
-                                    <div className="space-y-4">
-                                        <div>
-                                            <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Kategori Profesi</label>
-                                            <div className="relative">
-                                                <select name="category" value={formData.category} onChange={handleChange} className="w-full mt-1 px-4 py-2.5 border rounded-lg appearance-none dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:border-[#17B8A5] cursor-pointer">
-                                                    <optgroup label="Medis">{JOB_CATEGORIES.MEDIS.map(c => <option key={c} value={c}>{c}</option>)}</optgroup>
-                                                    <optgroup label="Keperawatan">{JOB_CATEGORIES.KEPERAWATAN.map(c => <option key={c} value={c}>{c}</option>)}</optgroup>
-                                                    <optgroup label="Penunjang">{JOB_CATEGORIES.PENUNJANG.map(c => <option key={c} value={c}>{c}</option>)}</optgroup>
-                                                    <optgroup label="Non-Medis">{JOB_CATEGORIES.NON_MEDIS.map(c => <option key={c} value={c}>{c}</option>)}</optgroup>
-                                                </select>
-                                                <div className="absolute right-3 top-1/2 mt-0.5 transform -translate-y-1/2 pointer-events-none"><ChevronDownIcon/></div>
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Unit Penempatan</label>
-                                            <div className="relative">
-                                                <select name="unit" value={formData.unit} onChange={handleChange} className="w-full mt-1 px-4 py-2.5 border rounded-lg appearance-none bg-yellow-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:border-[#17B8A5] cursor-pointer">
-                                                    <option value="">-- Pilih Unit --</option>
-                                                    {availableUnits.map((u, i) => (<option key={i} value={u}>{u}</option>))}
-                                                </select>
-                                                <div className="absolute right-3 top-1/2 mt-0.5 transform -translate-y-1/2 pointer-events-none"><ChevronDownIcon/></div>
-                                            </div>
-                                        </div>
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div>
-                                                <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Status</label>
-                                                <div className="relative">
-                                                    <select name="employeeType" value={formData.employeeType} onChange={handleChange} className="w-full mt-1 px-3 py-2.5 border rounded-lg appearance-none dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:border-[#17B8A5] cursor-pointer">
-                                                        <option value="Tetap">Pegawai Tetap</option>
-                                                        <option value="Kontrak">Kontrak (PKWT)</option>
-                                                        <option value="Mitra">Mitra (Dokter Tamu)</option>
-                                                        <option value="Residen">Residen (PPDS)</option>
-                                                        <option value="Magang">Magang (Internship)</option>
-                                                    </select>
-                                                    <div className="absolute right-3 top-1/2 mt-0.5 transform -translate-y-1/2 pointer-events-none"><ChevronDownIcon/></div>
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Tgl Masuk</label>
-                                                <input type="date" name="joinDate" value={formData.joinDate} onChange={handleChange} className="w-full mt-1 px-3 py-2.5 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:border-[#17B8A5]"/>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Legal Data Card */}
-                            <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 transition-all duration-500">
-                                <h3 className="font-bold text-gray-800 dark:text-white mb-5 flex items-center gap-2 border-b border-gray-100 dark:border-gray-700 pb-3">
-                                    <FileText size={18} className="text-[#17B8A5]" /> Legalitas & Dokumen
-                                </h3>
-                                {!isMedical ? (
-                                    <div className="flex flex-col items-center justify-center py-8 text-center text-gray-400 bg-gray-50 dark:bg-gray-700/50 rounded-xl border-2 border-dashed border-gray-200 dark:border-gray-600">
-                                        <div className="p-3 bg-gray-100 dark:bg-gray-600 rounded-full mb-3">
-                                            <CheckCircle size={24} className="text-green-500 opacity-70"/>
-                                        </div>
-                                        <p className="text-sm font-medium dark:text-gray-300">Kategori <span className="text-[#17B8A5]">{formData.category}</span></p>
-                                        <p className="text-xs">Tidak memerlukan input data SIP.</p>
-                                    </div>
-                                ) : (
-                                    <div className="space-y-6">
-                                        <div className="bg-yellow-50 dark:bg-yellow-900/10 border border-yellow-200 dark:border-yellow-800 p-4 rounded-lg flex gap-3">
-                                            <AlertTriangle className="text-yellow-600 dark:text-yellow-500 shrink-0" size={20}/>
-                                            <div className="text-sm text-yellow-800 dark:text-yellow-400">
-                                                <p className="font-bold">Wajib Diisi!</p>
-                                                <p className="opacity-90">Tenaga Medis/Kesehatan wajib melengkapi data SIP yang masih berlaku.</p>
-                                            </div>
-                                        </div>
-                                        
-                                        {/* SECTION: SIP */}
-                                        <div>
-                                            <h4 className="text-xs font-bold text-gray-400 uppercase mb-3 flex items-center gap-2"><FileText size={14}/> Surat Izin Praktik (SIP)</h4>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
-                                                <div>
-                                                    <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Nomor SIP</label>
-                                                    <input name="sipNumber" value={formData.sipNumber} onChange={handleChange} className="w-full mt-1 px-4 py-2.5 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:border-[#17B8A5]" placeholder="No. SIP..."/>
-                                                </div>
-                                                <div>
-                                                    <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Masa Berlaku SIP</label>
-                                                    <input type="date" name="sipExpiry" value={formData.sipExpiry} onChange={handleChange} className="w-full mt-1 px-4 py-2.5 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:border-[#17B8A5]"/>
-                                                </div>
-                                            </div>
-                                            
-                                            <div>
-                                                <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase block mb-2">Upload Scan SIP</label>
-                                                {sipImagePreview ? (
-                                                    <div className="relative group rounded-xl overflow-hidden border border-gray-200 dark:border-gray-600 w-full md:w-1/2">
-                                                        <img src={sipImagePreview} className="w-full h-48 object-cover" alt="SIP Preview" />
-                                                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition cursor-pointer" onClick={() => document.getElementById('sipUpload').click()}>
-                                                            <p className="text-white font-bold flex items-center gap-2"><Edit size={16}/> Ganti Foto</p>
-                                                        </div>
-                                                        <input id="sipUpload" type="file" accept="image/*" onChange={(e) => handleFileChange(e, 'sip')} className="hidden"/>
-                                                    </div>
-                                                ) : (
-                                                    <label className="flex flex-col items-center justify-center w-full md:w-1/2 h-32 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl cursor-pointer bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 transition">
-                                                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                                                            <Upload size={24} className="text-gray-400 mb-2"/>
-                                                            <p className="text-sm text-gray-500 dark:text-gray-400"><span className="font-semibold">Klik untuk upload</span></p>
-                                                            <p className="text-xs text-gray-500 dark:text-gray-400">JPG, PNG (Max 2MB)</p>
-                                                        </div>
-                                                        <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, 'sip')} className="hidden" />
-                                                    </label>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </div>
+                <div className="space-y-6 animate-fade-in max-w-4xl mx-auto">
+                    <h2 className="text-2xl font-bold dark:text-white">Input Data SDM</h2>
+                    <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div><label className="text-xs font-bold text-gray-500 uppercase">Nama Lengkap</label><input required name="name" value={formData.name} onChange={handleChange} className="w-full mt-1 px-4 py-2 border rounded-lg dark:bg-gray-700 dark:text-white"/></div>
+                        <div><label className="text-xs font-bold text-gray-500 uppercase">ID Pegawai</label><input required name="employeeId" value={formData.employeeId} onChange={handleChange} className="w-full mt-1 px-4 py-2 border rounded-lg dark:bg-gray-700 dark:text-white"/></div>
+                        <div><label className="text-xs font-bold text-gray-500 uppercase">Unit</label><input required name="unit" value={formData.unit} onChange={handleChange} className="w-full mt-1 px-4 py-2 border rounded-lg dark:bg-gray-700 dark:text-white"/></div>
+                        <div><label className="text-xs font-bold text-gray-500 uppercase">Jabatan</label><input required name="role" value={formData.role} onChange={handleChange} className="w-full mt-1 px-4 py-2 border rounded-lg dark:bg-gray-700 dark:text-white"/></div>
+                        <div className="md:col-span-2"><button type="submit" className="w-full bg-[#17B8A5] text-white font-bold py-3 rounded-lg hover:bg-[#0F8F80]">Simpan Data</button></div>
+                    </form>
                 </div>
             );
         };
 
         const PerformanceModule = ({ staffData }) => {
-            const [selectedId, setSelectedId] = useState(staffData[0]?.id);
-            const [activeTab, setActiveTab] = useState('kpi');
-            const [searchQuery, setSearchQuery] = useState('');
-            const filteredStaff = staffData.filter(s => s.name.toLowerCase().includes(searchQuery.toLowerCase()) || s.unit.toLowerCase().includes(searchQuery.toLowerCase()));
-            const staff = staffData.find(s => s.id === parseInt(selectedId));
-            const tabs = [ { id: 'kpi', label: 'KPI & IKU', icon: Target }, { id: 'behavior', label: 'Perilaku & Disiplin', icon: UserCheck }, { id: 'training', label: 'Diklat & SKP', icon: GraduationCap } ];
+            const [kinerjaData, setKinerjaData] = useState([]);
+            
+            // Explicitly fetch from /api/kinerjaStaff/ as requested
+            useEffect(() => {
+                fetch(`${API_URL}/kinerjaStaff`)
+                    .then(res => res.json())
+                    .then(data => setKinerjaData(data))
+                    .catch(err => console.error(err));
+            }, [staffData]); // Reload if staff changes
 
             return (
-                <div className="space-y-6 animate-fade-in"><h2 className="text-2xl font-bold text-[#2C2C2C] dark:text-white">Evaluasi Kinerja (KPI & OPPE)</h2><div className="flex flex-col md:flex-row gap-6 h-[calc(100vh-200px)]"><div className="w-full md:w-1/4 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col h-full"><div className="p-4 bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700"><div className="relative"><Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} /><input type="text" placeholder="Cari Pegawai..." className="w-full pl-9 pr-3 py-2 border border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#17B8A5]" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}/></div></div><div className="flex-1 overflow-y-auto p-2 space-y-1">{filteredStaff.map(s => (<button key={s.id} onClick={() => setSelectedId(s.id)} className={`w-full text-left p-3 rounded-lg text-sm transition-all duration-200 ${selectedId === s.id ? 'bg-[#17B8A5] text-white shadow-md transform scale-[1.02]' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'}`}><div className="font-bold">{s.name}</div><div className={`text-xs ${selectedId === s.id ? 'text-white/80' : 'text-gray-500 dark:text-gray-400'}`}>{s.unit}</div></button>))}</div></div><div className="w-full md:w-3/4 flex flex-col h-full">{staff ? (<React.Fragment><div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 flex justify-between items-center mb-6"><div><h3 className="text-xl font-bold text-gray-800 dark:text-white">{staff.name}</h3><p className="text-gray-500 dark:text-gray-400 text-sm">{staff.role} - {staff.unit}</p><p className="text-xs text-gray-400 font-mono mt-1">{staff.employeeId}</p></div><div className="text-right"><p className="text-xs font-bold text-gray-400 uppercase">Skor Kinerja Total</p><div className="text-4xl font-bold text-[#17B8A5]">{staff.performance[staff.performance.length-1] || '-'}</div></div></div><div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 flex-1 flex flex-col overflow-hidden"><div className="flex border-b border-gray-100 dark:border-gray-700">{tabs.map(tab => (<button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex-1 py-4 text-sm font-semibold flex items-center justify-center gap-2 transition-colors ${activeTab === tab.id ? 'border-b-2 border-[#17B8A5] text-[#17B8A5] bg-[#F0FDFA] dark:bg-gray-700' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700'}`}><tab.icon size={18}/> {tab.label}</button>))}</div><div className="p-6 overflow-y-auto flex-1 bg-gray-50 dark:bg-gray-900">{activeTab === 'kpi' && (<div className="space-y-6 animate-fade-in"><div className="flex justify-between items-center"><h4 className="text-lg font-bold text-gray-800 dark:text-white">Indikator Kinerja Utama (IKU)</h4><span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-bold">Periode: 2024</span></div>{staff.kpi && staff.kpi.length > 0 ? (<div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden"><table className="w-full text-sm text-left"><thead className="bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-200 font-semibold border-b border-gray-200 dark:border-gray-600"><tr><th className="p-4">Indikator Kinerja</th><th className="p-4">Target</th><th className="p-4">Realisasi</th><th className="p-4 text-right">Capaian (%)</th></tr></thead><tbody className="divide-y divide-gray-100 dark:divide-gray-700 dark:text-gray-300">{staff.kpi.map((item, idx) => (<tr key={idx}><td className="p-4 font-medium">{item.indicator}</td><td className="p-4 text-gray-500 dark:text-gray-400">{item.target}</td><td className="p-4 font-semibold">{item.actual}</td><td className="p-4 text-right"><span className={`px-2 py-1 rounded text-xs font-bold ${item.score >= 90 ? 'bg-green-100 text-green-700' : item.score >= 75 ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'}`}>{item.score}%</span></td></tr>))}</tbody></table></div>) : (<div className="text-center py-10 text-gray-400 bg-white dark:bg-gray-800 rounded-lg border border-dashed border-gray-300 dark:border-gray-700">Belum ada data KPI yang diinput.</div>)}</div>)}{activeTab === 'behavior' && (<div className="space-y-8 animate-fade-in"><div><h4 className="text-lg font-bold text-gray-800 dark:text-white mb-4 flex items-center gap-2"><UserCheck size={20} className="text-[#17B8A5]"/> Penilaian Perilaku (360 Degree)</h4>{staff.behavior && staff.behavior.length > 0 ? (<div className="grid grid-cols-1 md:grid-cols-2 gap-4">{staff.behavior.map((b, idx) => (<div key={idx} className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm"><div className="flex justify-between items-center mb-2"><span className="font-bold text-gray-700 dark:text-gray-200">{b.aspect}</span><span className="font-bold text-[#17B8A5]">{b.score}/100</span></div><div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2 mb-2"><div className="bg-[#17B8A5] h-2 rounded-full" style={{ width: `${b.score}%` }}></div></div><p className="text-xs text-gray-500 dark:text-gray-400 italic">"{b.note}"</p></div>))}</div>) : (<p className="text-gray-400 italic">Data perilaku belum tersedia.</p>)}</div><div><h4 className="text-lg font-bold text-gray-800 dark:text-white mb-4 flex items-center gap-2"><FileText size={20} className="text-red-500"/> Catatan Disiplin & Pelanggaran</h4>{staff.discipline && staff.discipline.length > 0 ? (<div className="space-y-3">{staff.discipline.map((d, idx) => (<div key={idx} className="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 p-4 rounded-r-lg flex justify-between items-start"><div><p className="font-bold text-red-700 dark:text-red-300">{d.type}</p><p className="text-sm text-red-600 dark:text-red-400 mt-1">{d.description}</p></div><span className="text-xs font-semibold text-red-400">{d.date}</span></div>))}</div>) : (<div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg border border-green-200 dark:border-green-800 text-green-700 dark:text-green-300 flex items-center gap-3"><CheckCircle size={20}/><span>Tidak ada catatan pelanggaran disiplin. Pegawai Teladan.</span></div>)}</div></div>)}{activeTab === 'training' && (<div className="space-y-8 animate-fade-in"><div className="bg-white dark:bg-gray-800 p-5 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm"><h4 className="text-lg font-bold text-gray-800 dark:text-white mb-4 flex items-center gap-2"><FileBarChart size={20} className="text-[#17B8A5]"/> Sasaran Kinerja Pegawai (SKP)</h4><div className="grid grid-cols-3 gap-6 text-center"><div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg"><p className="text-xs text-gray-500 dark:text-gray-400 uppercase">Target Kredit</p><p className="text-2xl font-bold text-gray-800 dark:text-white">{staff.skp?.target || 0}</p></div><div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg"><p className="text-xs text-gray-500 dark:text-gray-400 uppercase">Realisasi</p><p className="text-2xl font-bold text-[#17B8A5]">{staff.skp?.realization || 0}</p></div><div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg"><p className="text-xs text-gray-500 dark:text-gray-400 uppercase">Predikat</p><p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{staff.skp?.grade || '-'}</p></div></div></div><div><h4 className="text-lg font-bold text-gray-800 dark:text-white mb-4 flex items-center gap-2"><Award size={20} className="text-orange-500"/> Riwayat Pendidikan & Pelatihan (Diklat)</h4>{staff.training && staff.training.length > 0 ? (<div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden"><table className="w-full text-sm text-left"><thead className="bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-200 font-semibold border-b border-gray-200 dark:border-gray-600"><tr><th className="p-4">Nama Kegiatan</th><th className="p-4">Tanggal</th><th className="p-4">Jenis</th><th className="p-4">Durasi</th></tr></thead><tbody className="divide-y divide-gray-100 dark:divide-gray-700 dark:text-gray-300">{staff.training.map((t, idx) => (<tr key={idx}><td className="p-4 font-bold">{t.name}</td><td className="p-4 text-gray-500 dark:text-gray-400">{t.date}</td><td className="p-4"><span className="bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 px-2 py-1 rounded text-xs border border-blue-100 dark:border-blue-800">{t.type}</span></td><td className="p-4 text-gray-500 dark:text-gray-400">{t.duration}</td></tr>))}</tbody></table></div>) : (<p className="text-gray-400 italic bg-white dark:bg-gray-800 p-4 rounded border border-dashed text-center">Belum ada riwayat diklat tahun ini.</p>)}</div></div>)}</div></div></React.Fragment>) : (<div className="flex-1 flex flex-col items-center justify-center text-gray-400 bg-gray-50 dark:bg-gray-800 rounded-xl border border-dashed border-gray-300 dark:border-gray-700 m-4"><Users size={48} className="mb-4 opacity-50"/><p>Pilih pegawai dari daftar di sebelah kiri untuk melihat detail kinerja.</p></div>)}</div></div></div>
+                <div className="space-y-6 animate-fade-in">
+                    <h2 className="text-2xl font-bold dark:text-white">Evaluasi Kinerja</h2>
+                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                        {kinerjaData.length === 0 ? <p className="text-gray-500">Belum ada data kinerja.</p> : (
+                            <ul className="space-y-3">
+                                {kinerjaData.map(k => (
+                                    <li key={k.id} className="p-4 border rounded-lg flex justify-between items-center dark:border-gray-700">
+                                        <div><p className="font-bold dark:text-white">{k.name}</p><p className="text-xs text-gray-500">{k.role}</p></div>
+                                        <span className="bg-green-100 text-green-800 text-xs font-bold px-2 py-1 rounded">Aktif</span>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </div>
+                </div>
             );
         };
 
-        const Sidebar = ({ activeTab, setActiveTab, onOpenSettings, user }) => (
-            <div className="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col h-screen fixed left-0 top-0 z-50 transition-colors">
-                <div className="h-16 flex items-center justify-center border-b border-gray-200 dark:border-gray-700"><h1 className="text-2xl font-bold text-[#17B8A5]">SIMRS<span className="text-gray-800 dark:text-white">HR</span></h1></div>
-                <nav className="p-4 space-y-2 flex-1">
-                    {[
-                        { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-                        { id: 'directory', icon: Users, label: 'Direktori & Shift' },
-                        { id: 'crud', icon: UserPlus, label: 'Input Data SDM' },
-                        { id: 'performance', icon: Activity, label: 'Evaluasi Kinerja' },
-                        { id: 'assistant', icon: Bot, label: 'Asisten HR' } 
-                    ].map(item => (
-                        <button key={item.id} onClick={() => setActiveTab(item.id)} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition ${activeTab === item.id ? 'bg-[#17B8A5] text-white shadow-md' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'}`}>
-                            <item.icon size={20}/> {item.label}
-                        </button>
-                    ))}
-                </nav>
-                <div onClick={onOpenSettings} className="p-4 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/30 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center font-bold text-gray-500 uppercase">
-                            {user?.name ? user.name.substring(0,2) : 'AD'}
-                        </div>
-                        <div className="overflow-hidden">
-                            <p className="text-sm font-bold text-gray-700 dark:text-gray-200 truncate">{user?.name || 'Admin HR'}</p>
-                            <p className="text-xs text-gray-400">Pengaturan Akun</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        );
-
-        // --- MAIN APP COMPONENT ---
+        // --- MAIN APP ---
         const App = () => {
+            const [user, setUser] = useState(null);
             const [activeTab, setActiveTab] = useState('dashboard');
-            const [staffData, setStaffData] = useState(INITIAL_DATA);
-            const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-            const [theme, setTheme] = useState('light');
-            
-            // New State for Delete Confirmation
-            const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-            const [staffToDelete, setStaffToDelete] = useState(null);
+            const [staffData, setStaffData] = useState([]);
+            const [toast, setToast] = useState(null);
 
-            // Auth State
-            const [user, setUser] = useState(null); 
-            const [registeredUsers, setRegisteredUsers] = useState([
-                { name: "Admin Utama", email: "admin@rs.com", password: "password123" }
-            ]);
-
-            const handleLogin = (userData) => setUser(userData);
-            const handleLogout = () => {
-                setUser(null);
-                setIsSettingsOpen(false);
-            };
-
-            const handleThemeChange = (newTheme) => {
-                setTheme(newTheme);
-                if (newTheme === 'dark') {
-                    document.documentElement.classList.add('dark');
-                } else {
-                    document.documentElement.classList.remove('dark');
+            // Fetch Staff on Login
+            useEffect(() => {
+                if (user) {
+                    fetch(`${API_URL}/staff`)
+                        .then(res => res.json())
+                        .then(data => { if(Array.isArray(data)) setStaffData(data); })
+                        .catch(console.error);
                 }
+            }, [user]);
+
+            const showToast = (msg, type) => setToast({ message: msg, type });
+
+            // DELETE handler
+            const handleDelete = async (id) => {
+                if(!confirm("Hapus data ini?")) return;
+                try {
+                    await fetch(`${API_URL}/staff/${id}`, { method: 'DELETE' });
+                    setStaffData(prev => prev.filter(s => s.id !== id));
+                    showToast('Data terhapus', 'success');
+                } catch(e) { showToast('Gagal menghapus', 'error'); }
             };
 
-            const handleUpdateStaff = (updatedStaff) => { setStaffData(staffData.map(s => s.id === updatedStaff.id ? updatedStaff : s)); };
-            
-            // Updated Delete Logic
-            const handleDeleteClick = (id) => { 
-                const staff = staffData.find(s => s.id === id);
-                setStaffToDelete(staff);
-                setIsDeleteModalOpen(true);
-            };
-
-            const confirmDelete = () => {
-                if (staffToDelete) {
-                    setStaffData(staffData.filter(s => s.id !== staffToDelete.id));
-                    setIsDeleteModalOpen(false);
-                    setStaffToDelete(null);
-                }
-            };
-
-            if (!user) {
-                return (
-                    <AuthPage 
-                        onLogin={handleLogin} 
-                        registeredUsers={registeredUsers} 
-                        setRegisteredUsers={setRegisteredUsers} 
-                    />
-                );
-            }
+            if (!user) return <AuthPage onLogin={setUser} />;
 
             return (
                 <div className="flex min-h-screen font-sans pl-64 bg-[#F7F7F7] dark:bg-gray-900 transition-colors">
-                    <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} onOpenSettings={() => setIsSettingsOpen(true)} user={user} />
+                    {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+                    
+                    <div className="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col h-screen fixed left-0 top-0 z-50">
+                        <div className="h-16 flex items-center justify-center border-b border-gray-200 dark:border-gray-700"><h1 className="text-2xl font-bold text-[#17B8A5]">SIMRS<span className="text-gray-800 dark:text-white">HR</span></h1></div>
+                        <nav className="p-4 space-y-2 flex-1">
+                            {[{ id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' }, { id: 'directory', icon: Users, label: 'Direktori' }, { id: 'crud', icon: UserPlus, label: 'Input Data' }, { id: 'performance', icon: Activity, label: 'Kinerja' }].map(item => (
+                                <button key={item.id} onClick={() => setActiveTab(item.id)} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition ${activeTab === item.id ? 'bg-[#17B8A5] text-white shadow-md' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'}`}><item.icon size={20}/> {item.label}</button>
+                            ))}
+                        </nav>
+                        <div onClick={() => setUser(null)} className="p-4 border-t border-gray-100 cursor-pointer hover:bg-gray-50 flex items-center gap-3"><div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center font-bold text-gray-500">{user.name.substring(0,2)}</div><div className="text-sm font-bold text-gray-700">{user.name}</div><LogOut size={16} className="ml-auto text-red-400"/></div>
+                    </div>
+
                     <main className="flex-1 p-8 h-screen overflow-y-auto">
                         {activeTab === 'dashboard' && <Dashboard staffData={staffData} />}
-                        {activeTab === 'directory' && <StaffDirectory staffData={staffData} onDelete={handleDeleteClick} onUpdate={handleUpdateStaff} />}
-                        {activeTab === 'crud' && <StaffForm onAddStaff={(s) => { setStaffData([...staffData, s]); setActiveTab('directory'); }} />}
+                        {activeTab === 'directory' && <StaffDirectory staffData={staffData} onDelete={handleDelete} />}
+                        {activeTab === 'crud' && <StaffForm onAddStaff={s => setStaffData([s, ...staffData])} showToast={showToast} />}
                         {activeTab === 'performance' && <PerformanceModule staffData={staffData} />}
-                        {activeTab === 'assistant' && <SmartHRAssistant staffData={staffData} />}
                     </main>
-                    <UserSettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} currentTheme={theme} onThemeChange={handleThemeChange} user={user} onLogout={handleLogout} />
-                    
-                    {/* Delete Confirmation Modal */}
-                    <Modal isOpen={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)} title="Konfirmasi Hapus Data">
-                        <div className="p-6">
-                            <div className="bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 rounded-xl p-4 flex items-center gap-4 mb-6">
-                                <div className="p-3 bg-white dark:bg-gray-800 rounded-full text-red-500 shadow-sm">
-                                    <Trash2 size={24} />
-                                </div>
-                                <div>
-                                    <h4 className="font-bold text-red-800 dark:text-red-300 text-lg">Hapus Pegawai?</h4>
-                                    <p className="text-sm text-red-600 dark:text-red-400">Tindakan ini tidak dapat dibatalkan.</p>
-                                </div>
-                            </div>
-                            
-                            <p className="text-gray-600 dark:text-gray-300 mb-2">
-                                Apakah Anda yakin ingin menghapus data pegawai ini:
-                            </p>
-                            {staffToDelete && (
-                                <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700 mb-6">
-                                    <p className="font-bold text-gray-800 dark:text-white">{staffToDelete.name}</p>
-                                    <p className="text-sm text-gray-500 dark:text-gray-400">{staffToDelete.role} - {staffToDelete.unit}</p>
-                                </div>
-                            )}
-
-                            <div className="flex justify-end gap-3 pt-2">
-                                <button 
-                                    onClick={() => setIsDeleteModalOpen(false)} 
-                                    className="px-5 py-2.5 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 font-medium transition"
-                                >
-                                    Batal
-                                </button>
-                                <button 
-                                    onClick={confirmDelete} 
-                                    className="px-5 py-2.5 rounded-lg bg-red-500 text-white hover:bg-red-600 font-bold shadow-md flex items-center gap-2 transition"
-                                >
-                                    <Trash2 size={18}/> Ya, Hapus Data
-                                </button>
-                            </div>
-                        </div>
-                    </Modal>
                 </div>
             );
         };
