@@ -25,6 +25,7 @@
     "@prisma/adapter-pg": "^7.1.0",
     "@prisma/client": "^6.19.1",
     "@prisma/extension-accelerate": "^2.0.2",
+    "@types/cors": "^2.8.19",
     "bcryptjs": "^3.0.3",
     "cloudinary": "^2.8.0",
     "cors": "^2.8.5",
