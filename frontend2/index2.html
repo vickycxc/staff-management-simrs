@@ -82,7 +82,7 @@
         } from 'https://esm.sh/lucide-react@0.263.1';
 
         // --- API CONFIGURATION ---
-        const API_URL = 'http://localhost:/api';
+        const API_URL = 'http://localhost:3000/api';
 
         // --- CONSTANTS ---
         const JOB_CATEGORIES = {
@@ -198,7 +198,7 @@
                 try {
                     const endpoint = isRegister ? '/auth/daftar' : '/auth/masuk';
                     const payload = isRegister 
-                        ? { name: formData.name, email: formData.email, password: formData.password }
+                        ? { nama: formData.nama, email: formData.email, password: formData.password }
                         : { email: formData.email, password: formData.password };
 
                     if (isRegister && formData.password !== formData.confirmPassword) {
@@ -217,7 +217,7 @@
                         if (isRegister) {
                             setSuccessMsg("Registrasi Berhasil! Silakan masuk.");
                             setIsRegister(false);
-                            setFormData({ name: '', email: '', password: '', confirmPassword: '' });
+                            setFormData({ nama: '', email: '', password: '', confirmPassword: '' });
                         } else {
                             onLogin(data.user);
                         }
