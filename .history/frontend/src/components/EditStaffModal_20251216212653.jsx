@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { 
-    ChevronDown as ChevronDownIcon, Briefcase, FileText, Eye, Upload, Save, X 
+    ChevronDown, Briefcase, FileText, Eye, Upload, Save, X 
 } from 'lucide-react';
 import Modal from './modal';
 import { JOB_CATEGORIES, UNIT_MAPPING, REQUIRED_SIP_DOCS } from '../constants/data';
