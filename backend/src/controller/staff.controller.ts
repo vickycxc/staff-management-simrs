@@ -43,7 +43,7 @@ export const updateStaff = async (req: Request, res: Response) => {
     try {
         if (!id || !namaLkG || !nip || !jenisKelamin || !alamat || !noTelp ||  !email || !kategoriProfesi || !kategoriUnitKerja || !jabatanSpesifik || !statusKepegawaian || !peran) {
             return res.status(400).json({ pesanError: "TIDAK_LENGKAP" });
-        
+        }
         let sipUrl: string | null = null;
         if (sip != null ) {
             sipUrl = await uploadSip(sip);
@@ -57,16 +57,17 @@ export const updateStaff = async (req: Request, res: Response) => {
                 jenisKelamin,
                 alamat,
                 noTelp,
+                email,
                 kategoriProfesi,
                 kategoriUnitKerja,
                 jabatanSpesifik,
+                statusKepegawaian,
                 peran,
                 sipUrl,
             }
              });
-
             return res.status(200).json({ staffDiperbarui });
-        }
+    
     } catch (error) {
         console.error("Error di masuk controller:", error);
         return res.status(500).json({ pesanError: "INTERNAL_ERROR" });
