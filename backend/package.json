@@ -4,8 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon --exec tsx src/index.ts",
-    "start": "node src/index.ts"
+    "build": "prisma generate --no-engine",
+    "dev": "nodemon src/index.ts",
+    "start": "node src/index.ts",
+    "postinstall": "npm run build"
   },
   "keywords": [],
   "author": "",
