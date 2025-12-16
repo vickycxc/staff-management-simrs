@@ -8,9 +8,8 @@ export const protectRoute = async (
   res: Response,
   next: NextFunction
 ) => {
-  6;
   try {
-    const token = req.get("x-auth-token");
+    const token = req.cookies.jwt;
     if (!token) {
       return res.status(401).json({ message: "TOKEN_TIDAK_DITEMUKAN" });
     }
