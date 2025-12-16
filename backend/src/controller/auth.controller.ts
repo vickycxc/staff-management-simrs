@@ -17,22 +17,22 @@ export const masuk = async (req: Request, res: Response) => {
             return res.status(400).json({ pesanError: "PASSWORD_KOSONG" });
         }
 
-        const pengguna = await prisma.pengguna.findUnique({
+        const admin = await prisma.admin.findUnique({
             where: { id }
         });
 
-        if (!pengguna) {
-            return res.status(404).json({ pesanError: "PENGGUNA_TIDAK_DITEMUKAN" });
+        if (!admin) {
+            return res.status(404).json({ pesanError: "ADMIN_TIDAK_DITEMUKAN" });
         }
 
-        const { password: passwordPengguna, ...penggunaTanpaPassword } = pengguna;
-        const isPasswordCorrect = await bcrypt.compare(password, passwordPengguna) ;
+        const { password: passwordAdmin, ...adminTanpaPassword } = admin;
+        const isPasswordCorrect = await bcrypt.compare(password, passwordAdmin) ;
         if (!isPasswordCorrect) {
             return res.status(401).json({ pesanError: "PASSWORD_SALAH" });
         }
-        generateToken(penggunaTanpaPassword.id);
+        generateToken(adminTanpaPassword.id);
         return res.status(200).json({
-            pengguna: penggunaTanpaPassword,
+            admin: adminTanpaPassword,
             pesan: "MASUK_BERHASIL",
 
         });
@@ -52,17 +52,17 @@ export const daftar = async (req: Request, res: Response) => {
         if (password.length < 6) {
             return res.status(400).json({ pesanError: "Password harus memiliki minimal 6 karakter" });
         }
-        const pengguna = await prisma.pengguna.findUnique({
+        const admin = await prisma.admin.findUnique({
              where: { 
                 id 
             } });
-        if (pengguna) {
+        if (admin) {
             return res.status(409).json({ pesanError: "ID_SUDAH_DIGUNAKAN" });
         }
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
-        const penggunaBaru = await prisma.pengguna.create({
+        const adminBaru = await prisma.admin.create({
             data: {
                 id,
                 nama,  
@@ -70,9 +70,9 @@ export const daftar = async (req: Request, res: Response) => {
                 password: hashedPassword,
             },
         });
-        const { password: _, ...penggunaTanpaPassword } = penggunaBaru;
+        const { password: _, ...adminTanpaPassword } = adminBaru;
         return res.status(201).json({
-            pengguna: penggunaTanpaPassword,
+            admin: adminTanpaPassword,
             pesan: "DAFTAR_BERHASIL",
         });
     } catch (error) {

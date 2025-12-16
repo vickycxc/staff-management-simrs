@@ -14,11 +14,139 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Pengguna {
+model Admin {
   id         Int      @id @default(autoincrement())
   nama       String
   nip        String   
   password   String
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+}
+model Staff {
+  id         Int      @id @default(autoincrement()) 
+  idStaff   Int      @unique
+  namaLkG    String
+  nip        String   
+  jenisKelamin  jenisKelamin
+  alamat     String
+  noTelp    String
+  email      String
+  kategoriProfesi  kategoriProfesi
+  kategoriUnitkerja  kategoriUnitkerja
+  jabatanSpesfik   String
+  statusKepegawaian kategoriStatuskepegawaian
+  peran       peran
+  sip        String?
+  sipUrl     String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model KinerjaStaff {
+  id         Int      @id @default(autoincrement())
+  targetTB  String
+  targetKP String
+  realisasiTB  String
+  realisasiKP String
+  capaianTB  String
+  capaianKP String
+  integritas  String
+  disiplin   String
+  skpTKP  String
+  skpRealisasi  String
+  skpPredikat  String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+} 
+
+model Diklat {
+  id         Int      @id @default(autoincrement())
+  namaKegiatan String
+  tanggal String
+  jenis String
+  durasi String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+model Direktori
+
+
+enum jenisKelamin {
+  LAKI_LAKI
+  PEREMPUAN
+}
+
+enum peran {
+  NON_MEDIS
+  MEDIS
+  PENUNJANG_MEDIS
+  PERAWAT_DAN_BIDAN
+}
+
+enum   kategoriProfesi {
+  DOKTER_SPESIALIS
+  DOKTER_UMUM
+  DOKTER_GIGI_DAN_MULUT
+  PERAWAT
+  BIDAN
+  FARMASI
+  LABORATORIUM
+  RADIOLOGI
+  GIZI
+  FISIOTERAPI
+  REKAM_MEDIS
+  MANAJEMEN_DAN_ADMIN
+  KEUANGAN
+  IT_DAN_SIMRS
+  IPSRS
+  KEAMANAN
+  LAYANAN_UMUM
+}
+
+enum  kategoriUnitkerja {
+  INSTALASI_GAWAT_DARURAT_IGD
+  RAWAT_INAP
+  POLI_UMUM
+  POLI_GIGI_DAN_MULUT
+  POLI_MATA
+  POLI_PENYAKIT_DALAM
+  POLI_OBYN
+  POLI_ANAK
+  POLI_KULIT_DAN_KELAMIN
+  POLI_THT
+  POLI_KEJIWAAN
+  POLI_REHABILITASI_MEDIK
+  POLI_SYARAF
+  POLI_ORTHOPEDI
+  POLI_BEDAH_UMUM
+  INTENSIVE_CARE_UNIT_ICU_ICCU_HCU_NICU
+  GIZI
+  LABORATORIUM_PATOLOGI_KLINIK
+  LABORATORIUM_PATOLOGI_ANATOMI
+  BANK_DARAH
+  RADIOLOGI
+  INSTALASI_FARMASI_RAWAT_JALAN
+  INSTALASI_FARMASI_RAWAT_INAP
+  FISIOTERAPI
+  REKAM_MEDIS
+  RUANG_SERVER_DAN_IT_SUPPORT
+  MANAJEMEN_DAN_ADMIN
+  KEUANGAN
+  FRONT_OFFICE
+  BACK_OFFICE
+  HRD_DAN_DIKLAT
+  KAMAR_OPERASI_IBS
+  KAMAR_BERSALIN
+  IPSRS
+  KEAMANAN_DAN_KETERTIBAN
+  SANITASI_DAN_KEBERSIHAN
+  LAUNDRY
+  SUPIR_AMBULANCE
+  CLEANING_SERVICE
+}
+
+enum kategoriStatuskepegawaian {
+  PEGAWAI_TETAP
+  KONTRAK
+  MITRA_DOKTER_TAMU
 }
