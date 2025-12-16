@@ -20,7 +20,7 @@ const JOB_CATEGORIES = ['All', 'Medis', 'Keperawatan', 'Penunjang', 'Non-Medis']
 
 // --- COMPONENTS ---
 
-// 1. MODAL COMPONENT
+// 1. MODAL COMPONENT (Reusable & Cantik)
 const Modal = ({ isOpen, onClose, title, children, maxWidth = "max-w-lg" }) => {
     if (!isOpen) return null;
     return (
@@ -88,12 +88,17 @@ const Sidebar = ({ activePage, setActivePage, isMobileOpen, setIsMobileOpen, onO
 
     return (
         <>
+            {/* Mobile Sidebar Overlay */}
             {isMobileOpen && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden animate-in fade-in" onClick={() => setIsMobileOpen(false)} />
             )}
+
+            {/* Mobile Sidebar Drawer */}
             <aside className={`fixed inset-y-0 left-0 z-50 w-64 transform transition-transform duration-300 ease-in-out lg:hidden ${isMobileOpen ? 'translate-x-0' : '-translate-x-full'}`}>
                 <SidebarContent />
             </aside>
+
+            {/* Desktop Sidebar (Static) */}
             <aside className="hidden lg:block w-64 h-full shrink-0">
                 <SidebarContent />
             </aside>
@@ -114,6 +119,7 @@ const DirectoryPage = ({ staffData, onDelete }) => {
 
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-10">
+            {/* Header Controls */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 sticky top-0 z-10">
                 <div className="relative w-full md:w-96 group">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-indigo-500 transition-colors" size={20} />
@@ -140,6 +146,7 @@ const DirectoryPage = ({ staffData, onDelete }) => {
                 </div>
             </div>
 
+            {/* Cards Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                 {filteredData.map((staff) => (
                     <div key={staff.id} className="group bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-lg hover:border-indigo-200 dark:hover:border-indigo-900 transition-all duration-300 relative overflow-hidden">
@@ -361,15 +368,15 @@ const UserSettingsModal = ({ isOpen, onClose }) => {
                             </div>
                             <div className="space-y-4">
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-2">Nama Lengkap</label>
-                                    <input className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-white dark:bg-gray-700 dark:text-white" defaultValue="Admin HR" />
+                                    <label className="label-text">Nama Lengkap</label>
+                                    <input className="input-field" defaultValue="Admin HR" />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-2">Email</label>
-                                    <input className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-white dark:bg-gray-700 dark:text-white" defaultValue="admin@rs-sehat.com" />
+                                    <label className="label-text">Email</label>
+                                    <input className="input-field" defaultValue="admin@rs-sehat.com" />
                                 </div>
                             </div>
-                            <button className="px-4 py-3 bg-indigo-600 text-white font-bold rounded-xl shadow-lg shadow-indigo-600/20 hover:bg-indigo-700 transition-all active:scale-95 hover:-translate-y-0.5 w-full">Simpan Perubahan</button>
+                            <button className="btn-primary w-full">Simpan Perubahan</button>
                         </div>
                     )}
                     
@@ -377,15 +384,15 @@ const UserSettingsModal = ({ isOpen, onClose }) => {
                         <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
                             <div className="space-y-4">
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-2">Password Lama</label>
-                                    <input type="password" className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-white dark:bg-gray-700 dark:text-white" placeholder="••••••" />
+                                    <label className="label-text">Password Lama</label>
+                                    <input type="password" class="input-field" placeholder="••••••" />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-2">Password Baru</label>
-                                    <input type="password" className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-white dark:bg-gray-700 dark:text-white" placeholder="••••••" />
+                                    <label className="label-text">Password Baru</label>
+                                    <input type="password" class="input-field" placeholder="••••••" />
                                 </div>
                             </div>
-                            <button className="px-4 py-3 bg-indigo-600 text-white font-bold rounded-xl shadow-lg shadow-indigo-600/20 hover:bg-indigo-700 transition-all active:scale-95 hover:-translate-y-0.5 w-full">Update Password</button>
+                            <button className="btn-primary w-full">Update Password</button>
                         </div>
                     )}
 
@@ -406,6 +413,16 @@ const UserSettingsModal = ({ isOpen, onClose }) => {
                     )}
                 </div>
             </div>
+            
+            {/* Styles for Settings Modal internal use */}
+            <style jsx>{`
+                .label-text { display: block; font-size: 0.75rem; font-weight: 700; color: #6b7280; text-transform: uppercase; margin-bottom: 0.5rem; }
+                .input-field { width: 100%; padding: 0.6rem 1rem; border-radius: 0.75rem; border: 1px solid #e5e7eb; outline: none; transition: all; background-color: white; }
+                .input-field:focus { ring: 2px solid #6366f1; border-color: #6366f1; box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1); }
+                .btn-primary { padding: 0.75rem 1rem; background-color: #4f46e5; color: white; font-weight: bold; border-radius: 0.75rem; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2); }
+                .btn-primary:hover { background-color: #4338ca; transform: translateY(-1px); }
+                .btn-primary:active { transform: translateY(0); }
+            `}</style>
         </Modal>
     );
 }

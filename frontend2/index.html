@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIMRS HR - Staff Management System</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Babel for JSX transformation -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Google Fonts: Noto Sans -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Noto Sans', sans-serif;
+            background-color: #F7F7F7;
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+        
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+
+        /* Login Background Pattern */
+        .bg-pattern {
+            background-image: radial-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <!-- React Application Script -->
+    <script type="text/babel" data-type="module">
+        import React, { useState, useEffect } from 'https://esm.sh/react@18.2.0';
+        import { createRoot } from 'https://esm.sh/react-dom@18.2.0/client';
+        import { 
+            LayoutDashboard, Users, UserPlus, Activity, Search, Menu, 
+            FileText, AlertTriangle, Trash2, Upload, Clock, Briefcase, 
+            Award, BookOpen, Filter, MoreVertical, Eye, Edit, X, ChevronRight,
+            User, Phone, Mail, MapPin, Calendar, Sun, Cloud, Moon,
+            CheckCircle, ChevronDown, EyeOff, Lock, AlertCircle, LogOut
+        } from 'https://esm.sh/lucide-react@0.263.1';
+
+        // ==========================================
+        // 1. DATA & KONFIGURASI
+        // ==========================================
+
+        const JOB_CATEGORIES = {
+            MEDIS: ['Dokter Spesialis', 'Dokter Umum', 'Dokter Gigi'],
+            KEPERAWATAN: ['Perawat', 'Bidan'],
+            PENUNJANG: ['Farmasi', 'Laboratorium', 'Radiologi', 'Gizi', 'Fisioterapi', 'Rekam Medis'],
+            NON_MEDIS: ['Manajemen & Admin', 'Keuangan', 'IT & SIMRS', 'Teknik (IPSRS)', 'Keamanan', 'Layanan Umum']
+        };
+
+        const WORK_UNITS = [
+            "Instalasi Gawat Darurat (IGD)", "Instalasi Rawat Jalan (Poliklinik)", "Instalasi Rawat Inap",
+            "Intensive Care Unit (ICU / ICCU / NICU)", "Kamar Operasi (IBS)", "Kamar Bersalin (VK)",
+            "Instalasi Farmasi", "Laboratorium", "Radiologi", "Rehabilitasi Medik", "Instalasi Gizi",
+            "Rekam Medis", "Manajemen & Administrasi", "Keuangan & Akuntansi", "IT & SIMRS",
+            "SDM & Diklat", "IPSRS (Teknik & Pemeliharaan)", "Keamanan & Ketertiban",
+            "Front Office & Pendaftaran", "Sanitasi & Laundry"
+        ];
+
+        const REQUIRED_SIP_DOCS = [...JOB_CATEGORIES.MEDIS, ...JOB_CATEGORIES.KEPERAWATAN, ...JOB_CATEGORIES.PENUNJANG];
+
+        const INITIAL_DATA = [
+            { 
+                id: 1, employeeId: "199001012018011001", name: "dr. Andi Pratama, Sp.PD-KGEH", role: "Spesialis Penyakit Dalam", unit: "Instalasi Rawat Jalan (Poliklinik)",
+                category: "Dokter Spesialis", employeeType: "Mitra", joinDate: "2018-05-12", 
+                sipNumber: "503/SIP/2018", sipExpiry: "2024-04-01", 
+                currentShift: "Pagi", performance: [85, 90, 88], skpPoints: 25, status: "Active",
+                gender: "Laki-laki", birthPlace: "Jakarta", birthDate: "1990-01-01", 
+                phone: "0812-3456-7890", email: "andi.pratama@rs.com", address: "Jl. Menteng Raya No. 10, Jakarta Pusat",
+                kpi: [{ indicator: "Respon Time Pasien Baru", target: "< 5 Menit", actual: "3 Menit", score: 95 }, { indicator: "Kepuasan Pasien", target: "90%", actual: "92%", score: 100 }]
+            },
+            { 
+                id: 2, employeeId: "199505052022021002", name: "dr. Kevin Sanjaya", role: "Dokter Jaga IGD", unit: "Instalasi Gawat Darurat (IGD)",
+                category: "Dokter Umum", employeeType: "Kontrak", joinDate: "2022-01-15", 
+                sipNumber: "789/SIP/2022", sipExpiry: "2026-01-15",
+                currentShift: "Malam", performance: [80, 85, 87], skpPoints: 10, status: "Active",
+                gender: "Laki-laki", birthPlace: "Bandung", birthDate: "1995-05-05", 
+                phone: "0811-2233-4455", email: "kevin.s@rs.com", address: "Jl. Dago Atas No. 55, Bandung", kpi: []
+            },
+            { 
+                id: 7, employeeId: "198803102010032001", name: "Ns. Siti Aminah, S.Kep", role: "Kepala Ruangan ICU", unit: "Intensive Care Unit (ICU / ICCU / NICU)",
+                category: "Perawat", employeeType: "Tetap", joinDate: "2010-03-10", 
+                sipNumber: "445/SIK/2019", sipExpiry: "2025-08-20", 
+                currentShift: "Pagi", performance: [95, 92, 94], skpPoints: 40, status: "Active",
+                gender: "Perempuan", birthPlace: "Surabaya", birthDate: "1988-03-10", 
+                phone: "0813-9876-5432", email: "siti.aminah@rs.com", address: "Jl. Gubeng No. 12, Surabaya", kpi: []
+            },
+            { 
+                id: 10, employeeId: "198902202014022003", name: "apt. Dewi Sartika, S.Farm", role: "Apoteker PJ", unit: "Instalasi Farmasi",
+                category: "Farmasi", employeeType: "Tetap", joinDate: "2014-02-20", 
+                sipNumber: "111/SIPA/2014", sipExpiry: "2024-02-20", 
+                currentShift: "Pagi", performance: [96, 95], skpPoints: 48, status: "Active",
+                gender: "Perempuan", birthPlace: "Medan", birthDate: "1989-02-20",
+                phone: "0812-1122-3344", email: "dewi.s@rs.com", address: "Jl. Gatot Subroto No. 88", kpi: []
+            },
+            { 
+                id: 15, employeeId: "199701152021011005", name: "Budi Santoso, S.Kom", role: "Staff IT SIMRS", unit: "IT & SIMRS",
+                category: "IT & SIMRS", employeeType: "Kontrak", joinDate: "2021-01-15", 
+                sipNumber: "-", sipExpiry: "-", 
+                currentShift: "Office Hour", performance: [80, 82], skpPoints: 0, status: "Active",
+                gender: "Laki-laki", birthPlace: "Semarang", birthDate: "1997-01-15",
+                phone: "0819-0011-2233", email: "budi.it@rs.com", address: "Jl. Pemuda No. 45", kpi: []
+            }
+        ];
+
+        // ==========================================
+        // 2. KOMPONEN LOGIN (AUTH)
+        // ==========================================
+
+        const BrandSidebar = () => (
+            <div className="hidden lg:flex w-1/2 bg-[#17B8A5] relative overflow-hidden flex-col justify-between p-12 text-white h-screen fixed left-0 top-0">
+                <div className="absolute inset-0 bg-pattern opacity-30"></div>
+                <div className="absolute -top-20 -right-20 w-80 h-80 bg-white opacity-10 rounded-full blur-3xl"></div>
+                <div className="absolute bottom-10 left-10 w-40 h-40 bg-teal-900 opacity-20 rounded-full blur-2xl"></div>
+
+                <div className="relative z-10 flex items-center gap-3">
+                    <div className="bg-white p-2 rounded-lg text-[#17B8A5]">
+                        <Activity size={32} strokeWidth={2.5} />
+                    </div>
+                    <h1 className="text-3xl font-bold tracking-tight">SIMRS <span className="font-light opacity-90">HR</span></h1>
+                </div>
+
+                <div className="relative z-10 space-y-6">
+                    <h2 className="text-4xl font-bold leading-tight">Sistem Kepegawaian <br/> Rumah Sakit.</h2>
+                    <p className="text-teal-50 text-lg font-light max-w-md">
+                        Kelola akses masuk staf medis dan administrasi dengan aman dan terintegrasi.
+                    </p>
+                </div>
+
+                <div className="relative z-10 text-xs opacity-60">&copy; 2024 SIMRS HR System.</div>
+            </div>
+        );
+
+        const InputField = ({ label, type, placeholder, icon: Icon, value, onChange }) => {
+            const [showPass, setShowPass] = useState(false);
+            const isPassword = type === 'password';
+            
+            return (
+                <div className="space-y-1.5">
+                    <label className="text-sm font-semibold text-gray-700">{label}</label>
+                    <div className="relative group">
+                        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-[#17B8A5] transition-colors">
+                            <Icon size={18} />
+                        </div>
+                        <input 
+                            type={isPassword && showPass ? 'text' : type}
+                            className="w-full pl-10 pr-10 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#17B8A5] bg-gray-50 focus:bg-white text-sm transition-all"
+                            placeholder={placeholder} 
+                            value={value} 
+                            onChange={onChange}
+                        />
+                        {isPassword && (
+                            <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-700">
+                                {showPass ? <EyeOff size={18}/> : <Eye size={18}/>}
+                            </button>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        const AuthPage = ({ onLogin, registeredUsers, setRegisteredUsers }) => {
+            const [isRegister, setIsRegister] = useState(false);
+            const [isLoading, setIsLoading] = useState(false);
+            const [formData, setFormData] = useState({ name: '', email: '', password: '', confirmPassword: '' });
+            const [error, setError] = useState('');
+            const [successMsg, setSuccessMsg] = useState('');
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                setError('');
+                setSuccessMsg('');
+                setIsLoading(true);
+
+                setTimeout(() => {
+                    if (!formData.email || !formData.password) {
+                        setError('Harap isi email dan password.'); 
+                        setIsLoading(false); return;
+                    }
+
+                    if (isRegister) {
+                        if (!formData.name) { setError('Nama Lengkap wajib diisi.'); setIsLoading(false); return; }
+                        if (formData.password.length < 6) { setError('Password minimal 6 karakter.'); setIsLoading(false); return; }
+                        if (formData.password !== formData.confirmPassword) { setError('Konfirmasi password tidak cocok.'); setIsLoading(false); return; }
+
+                        const existingUser = registeredUsers.find(u => u.email === formData.email);
+                        if (existingUser) { setError('Email ini sudah terdaftar. Silakan login.'); setIsLoading(false); return; }
+
+                        const newUser = { name: formData.name, email: formData.email, password: formData.password };
+                        setRegisteredUsers([...registeredUsers, newUser]);
+                        setSuccessMsg("Registrasi Berhasil! Silakan masuk.");
+                        setIsRegister(false);
+                        setFormData({ name: '', email: '', password: '', confirmPassword: '' });
+                        setIsLoading(false);
+                    } else {
+                        const foundUser = registeredUsers.find(u => u.email === formData.email && u.password === formData.password);
+                        if (foundUser) {
+                            setIsLoading(false);
+                            onLogin({ name: foundUser.name, email: foundUser.email });
+                        } else {
+                            setError('Email atau password salah.');
+                            setIsLoading(false);
+                        }
+                    }
+                }, 1000);
+            };
+
+            const toggleMode = () => {
+                setIsRegister(!isRegister);
+                setError('');
+                setSuccessMsg('');
+                setFormData({ name: '', email: '', password: '', confirmPassword: '' });
+            };
+
+            return (
+                <div className="min-h-screen flex w-full bg-white lg:bg-[#F7F7F7]">
+                    <BrandSidebar />
+                    <div className="w-full lg:w-1/2 lg:ml-auto flex items-center justify-center p-8 lg:p-16 bg-white animate-fade-in min-h-screen">
+                        <div className="w-full max-w-md space-y-8">
+                            <div className="text-center lg:text-left">
+                                <h2 className="text-3xl font-bold text-gray-800">{isRegister ? 'Buat Akun Baru' : 'Selamat Datang'}</h2>
+                                <p className="text-gray-500 mt-2">{isRegister ? 'Lengkapi data untuk akses SIMRS.' : 'Masuk untuk mengakses dashboard.'}</p>
+                            </div>
+
+                            {error && (
+                                <div className="bg-red-50 text-red-600 p-4 rounded-xl text-sm flex items-start gap-3 border border-red-100 animate-fade-in">
+                                    <AlertCircle className="shrink-0 mt-0.5" size={16}/> <span>{error}</span>
+                                </div>
+                            )}
+                            {successMsg && (
+                                <div className="bg-green-50 text-green-700 p-4 rounded-xl text-sm flex items-start gap-3 border border-green-100 animate-fade-in">
+                                    <CheckCircle className="shrink-0 mt-0.5" size={16}/> <span>{successMsg}</span>
+                                </div>
+                            )}
+
+                            <form onSubmit={handleSubmit} className="space-y-5">
+                                {isRegister && (
+                                    <InputField label="Nama Lengkap" type="text" placeholder="Contoh: dr. Budi Santoso" icon={User} value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
+                                )}
+                                <InputField label="Email" type="email" placeholder="nama@rs.com" icon={Mail} value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
+                                <InputField label="Password" type="password" placeholder="Minimal 6 karakter" icon={Lock} value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} />
+                                {isRegister && (
+                                    <InputField label="Konfirmasi Password" type="password" placeholder="Ulangi password" icon={CheckCircle} value={formData.confirmPassword} onChange={e => setFormData({...formData, confirmPassword: e.target.value})} />
+                                )}
+
+                                <button type="submit" disabled={isLoading} className="w-full bg-[#17B8A5] hover:bg-[#129485] text-white font-bold py-3.5 rounded-xl transition-all shadow-lg hover:shadow-teal-500/30 flex items-center justify-center gap-2 mt-6 disabled:opacity-70 disabled:cursor-not-allowed">
+                                    {isLoading ? (
+                                        <span className="flex items-center gap-2"><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div> Memproses...</span>
+                                    ) : (isRegister ? 'Daftar Sekarang' : 'Masuk Dashboard')}
+                                </button>
+                            </form>
+
+                            <div className="text-center pt-4 border-t border-gray-100 mt-6">
+                                <p className="text-sm text-gray-600">
+                                    {isRegister ? 'Sudah punya akun? ' : 'Belum punya akun? '}
+                                    <button onClick={toggleMode} className="text-[#17B8A5] font-bold hover:underline transition-colors ml-1">
+                                        {isRegister ? 'Masuk sekarang' : 'Daftar di sini'}
+                                    </button>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // ==========================================
+        // 3. KOMPONEN UTAMA APLIKASI
+        // ==========================================
+
+        const Modal = ({ isOpen, onClose, title, children }) => {
+            if (!isOpen) return null;
+            return (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 animate-fade-in p-4 backdrop-blur-sm">
+                    <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[85vh] overflow-hidden flex flex-col border border-gray-100">
+                        <div className="flex justify-between items-center p-5 border-b border-gray-100 bg-gray-50">
+                            <h3 className="text-lg font-bold text-gray-800">{title}</h3>
+                            <button onClick={onClose} className="p-2 hover:bg-gray-200 rounded-full text-gray-500 transition-colors"><X size={20}/></button>
+                        </div>
+                        <div className="p-0 overflow-y-auto flex-1">{children}</div>
+                    </div>
+                </div>
+            );
+        };
+
+        const Sidebar = ({ activeTab, setActiveTab, isOpen, toggleSidebar, user, onLogout }) => {
+            const menuItems = [
+                { id: 'dashboard', label: 'Dashboard Eksekutif', icon: LayoutDashboard },
+                { id: 'directory', label: 'Direktori & Shift', icon: Users },
+                { id: 'crud', label: 'Input Data SDM', icon: UserPlus },
+                { id: 'performance', label: 'Evaluasi Kinerja', icon: Activity },
+            ];
+
+            return (
+                <React.Fragment>
+                    {isOpen && <div className="fixed inset-0 z-20 bg-black bg-opacity-50 md:hidden" onClick={toggleSidebar}></div>}
+                    <div className={`fixed inset-y-0 left-0 z-30 w-64 bg-white shadow-xl transform transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 md:static md:inset-0 border-r border-gray-100 flex flex-col`}>
+                        <div className="flex items-center justify-center h-20 border-b border-gray-100 bg-white shrink-0">
+                            <h1 className="text-2xl font-bold text-[#17B8A5]">SIMRS<span className="text-gray-800">HR</span></h1>
+                        </div>
+                        <nav className="mt-8 px-4 space-y-2 flex-1">
+                            {menuItems.map((item) => (
+                                <button
+                                    key={item.id}
+                                    onClick={() => {
+                                        setActiveTab(item.id);
+                                        if (window.innerWidth < 768) toggleSidebar();
+                                    }}
+                                    className={`flex items-center w-full px-4 py-3 rounded-lg transition-all duration-200 ${
+                                        activeTab === item.id ? 'bg-[#17B8A5] text-white shadow-md font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:text-[#17B8A5]'
+                                    }`}
+                                >
+                                    <item.icon size={20} className="mr-3" />
+                                    <span className="text-left">{item.label}</span>
+                                </button>
+                            ))}
+                        </nav>
+                        
+                        <div className="p-4 border-t border-gray-100 bg-gray-50 shrink-0">
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className="w-10 h-10 rounded-full bg-[#17B8A5] text-white flex items-center justify-center font-bold text-sm shadow-sm">
+                                    {user?.name?.substring(0, 2).toUpperCase() || 'AD'}
+                                </div>
+                                <div className="overflow-hidden">
+                                    <p className="text-sm font-bold text-gray-700 truncate">{user?.name || 'Admin'}</p>
+                                    <p className="text-xs text-gray-400 truncate" title={user?.email}>{user?.email || 'Online'}</p>
+                                </div>
+                            </div>
+                            <button 
+                                onClick={onLogout}
+                                className="flex items-center justify-center w-full gap-2 px-4 py-2 text-red-600 hover:bg-red-50 hover:text-red-700 rounded-lg transition-colors text-xs font-bold border border-red-100"
+                            >
+                                <LogOut size={14} /> Keluar Aplikasi
+                            </button>
+                        </div>
+                    </div>
+                </React.Fragment>
+            );
+        };
+
+        const Dashboard = ({ staffData }) => {
+            const [modalData, setModalData] = useState({ isOpen: false, title: '', list: [] });
+
+            const getSipWarnings = () => {
+                const today = new Date();
+                return staffData.map(staff => {
+                    if (staff.sipExpiry === '-' || !staff.sipExpiry) return null;
+                    const sipDate = new Date(staff.sipExpiry);
+                    const diffTime = sipDate - today;
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    let status = '';
+                    if (diffDays <= 30) status = 'red';      
+                    else if (diffDays <= 90) status = 'orange'; 
+                    else if (diffDays <= 180) status = 'yellow'; 
+                    if (!status) return null;
+                    return { ...staff, warningStatus: status, daysLeft: diffDays };
+                }).filter(item => item !== null).sort((a,b) => a.daysLeft - b.daysLeft);
+            };
+
+            const warningList = getSipWarnings();
+            
+            const getStaffByGroup = (groups) => staffData.filter(s => groups.includes(s.category));
+            const getStaffOnDuty = () => staffData.filter(s => s.currentShift === 'Pagi' || s.currentShift === 'Office Hour');
+            const getStaffByShift = (shiftName) => {
+                if (shiftName === 'Pagi') return staffData.filter(s => s.currentShift === 'Pagi' || s.currentShift === 'Office Hour');
+                return staffData.filter(s => s.currentShift === shiftName);
+            };
+
+            const openListModal = (title, dataList) => {
+                setModalData({ isOpen: true, title, list: dataList });
+            };
+
+            const WidgetCard = ({ title, count, icon: Icon, colorClass, borderColorClass, onClick }) => (
+                <div onClick={onClick} className={`bg-white p-5 rounded-xl shadow-sm border-l-4 ${borderColorClass} cursor-pointer hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group`}>
+                    <div className="flex justify-between items-start">
+                        <div>
+                            <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">{title}</p>
+                            <h3 className="text-3xl font-bold text-gray-800 mt-2 group-hover:text-[#17B8A5] transition-colors">{count}</h3>
+                        </div>
+                        <div className={`p-3 rounded-lg bg-gray-50 ${colorClass} group-hover:bg-white transition-colors`}>
+                            <Icon size={24} />
+                        </div>
+                    </div>
+                    <p className={`text-xs mt-4 font-semibold flex items-center gap-1 ${colorClass.replace('text-', 'text-opacity-80 text-')}`}>
+                        Lihat Daftar <ChevronRight size={12}/>
+                    </p>
+                </div>
+            );
+
+            return (
+                <div className="space-y-8 animate-fade-in">
+                    <div>
+                        <h2 className="text-2xl font-bold text-[#2C2C2C]">Dashboard Operasional SDM</h2>
+                        <p className="text-gray-500 text-sm">Ringkasan data pegawai dan status operasional hari ini.</p>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                        <WidgetCard 
+                            title="Medis & Perawat" count={getStaffByGroup([...JOB_CATEGORIES.MEDIS, ...JOB_CATEGORIES.KEPERAWATAN]).length} icon={Users} colorClass="text-[#17B8A5]" borderColorClass="border-[#17B8A5]"
+                            onClick={() => openListModal('Daftar Tenaga Medis & Keperawatan', getStaffByGroup([...JOB_CATEGORIES.MEDIS, ...JOB_CATEGORIES.KEPERAWATAN]))}
+                        />
+                        <WidgetCard 
+                            title="Penunjang Medis" count={getStaffByGroup(JOB_CATEGORIES.PENUNJANG).length} icon={Activity} colorClass="text-purple-500" borderColorClass="border-purple-500"
+                            onClick={() => openListModal('Daftar Penunjang Medis', getStaffByGroup(JOB_CATEGORIES.PENUNJANG))}
+                        />
+                        <WidgetCard 
+                            title="Non-Medis (Umum)" count={getStaffByGroup(JOB_CATEGORIES.NON_MEDIS).length} icon={Briefcase} colorClass="text-orange-500" borderColorClass="border-orange-500"
+                            onClick={() => openListModal('Daftar Pegawai Non-Medis', getStaffByGroup(JOB_CATEGORIES.NON_MEDIS))}
+                        />
+                        <WidgetCard 
+                            title="Dinas Pagi Ini" count={getStaffOnDuty().length} icon={Clock} colorClass="text-blue-500" borderColorClass="border-blue-500"
+                            onClick={() => openListModal('Daftar Pegawai Shift Pagi', getStaffOnDuty())}
+                        />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {['Pagi', 'Sore', 'Malam'].map((shift) => (
+                            <div key={shift} onClick={() => openListModal(`Daftar Pegawai Shift ${shift}`, getStaffByShift(shift))} className={`p-4 rounded-xl flex items-center gap-3 cursor-pointer hover:shadow-md transition-all border ${shift === 'Pagi' ? 'bg-blue-50 border-blue-100 hover:bg-blue-100' : shift === 'Sore' ? 'bg-orange-50 border-orange-100 hover:bg-orange-100' : 'bg-indigo-50 border-indigo-100 hover:bg-indigo-100'}`}>
+                                <div className={`p-2 bg-white rounded-full ${shift === 'Pagi' ? 'text-blue-500' : shift === 'Sore' ? 'text-orange-500' : 'text-indigo-600'}`}>
+                                    {shift === 'Pagi' ? <Sun size={20}/> : shift === 'Sore' ? <Cloud size={20}/> : <Moon size={20}/>}
+                                </div>
+                                <div>
+                                    <p className={`text-xs font-bold uppercase ${shift === 'Pagi' ? 'text-blue-500' : shift === 'Sore' ? 'text-orange-500' : 'text-indigo-600'}`}>Shift {shift}</p>
+                                    <p className="text-sm font-bold text-gray-700">{shift === 'Pagi' ? '07.00 - 15.00' : shift === 'Sore' ? '15.00 - 23.00' : '23.00 - 07.00'}</p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-200">
+                        <div className="p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                            <h3 className="font-bold text-gray-800 flex items-center gap-2">
+                                <AlertTriangle className="text-yellow-600" size={20} /> Monitoring Masa Berlaku SIP
+                            </h3>
+                            <span className="bg-red-100 text-red-600 text-xs px-3 py-1 rounded-full font-bold">{warningList.length} Perlu Perhatian</span>
+                        </div>
+                        <div className="p-5">
+                            {warningList.length === 0 ? (
+                                <div className="text-center py-10 flex flex-col items-center justify-center text-gray-400">
+                                    <CheckCircle size={48} className="mb-2 text-green-500 opacity-50"/>
+                                    <p>Semua SIP Pegawai Aman (&gt; 6 Bulan).</p>
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {warningList.map(staff => {
+                                        let bgColor, textColor, icon, label, borderColor;
+                                        if (staff.warningStatus === 'red') { bgColor = 'bg-red-50'; borderColor = 'border-red-200'; textColor = 'text-red-700'; icon = '🚨'; label = 'CRITICAL (< 1 Bulan)'; }
+                                        else if (staff.warningStatus === 'orange') { bgColor = 'bg-orange-50'; borderColor = 'border-orange-200'; textColor = 'text-orange-700'; icon = '⚠️'; label = 'WARNING (< 3 Bulan)'; }
+                                        else { bgColor = 'bg-yellow-50'; borderColor = 'border-yellow-200'; textColor = 'text-yellow-700'; icon = '⚡'; label = 'ATTENTION (< 6 Bulan)'; }
+
+                                        return (
+                                            <div key={staff.id} className={`flex items-center justify-between p-4 border rounded-lg shadow-sm transition-transform hover:scale-[1.01] ${bgColor} ${borderColor}`}>
+                                                <div className="flex items-center gap-4">
+                                                    <div className="text-3xl">{icon}</div>
+                                                    <div>
+                                                        <p className="font-bold text-gray-800">{staff.name}</p>
+                                                        <div className="flex items-center gap-2 mt-1">
+                                                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full bg-white border ${borderColor} ${textColor}`}>{label}</span>
+                                                            <span className="text-xs text-gray-500">Exp: {staff.sipExpiry}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )
+                                    })}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    <Modal isOpen={modalData.isOpen} onClose={() => setModalData({...modalData, isOpen: false})} title={modalData.title}>
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-sm text-left">
+                                <thead className="bg-gray-50 text-gray-600 font-bold border-b">
+                                    <tr>
+                                        <th className="p-4 w-10">No</th>
+                                        <th className="p-4">ID Pegawai</th>
+                                        <th className="p-4">Nama</th>
+                                        <th className="p-4">Unit Kerja</th>
+                                        <th className="p-4">Jabatan</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-100">
+                                    {modalData.list.map((s, idx) => (
+                                        <tr key={s.id} className="hover:bg-gray-50 transition-colors">
+                                            <td className="p-4 text-gray-400">{idx + 1}</td>
+                                            <td className="p-4 font-mono text-xs font-semibold text-[#17B8A5]">{s.employeeId}</td>
+                                            <td className="p-4 font-medium text-gray-800">{s.name}</td>
+                                            <td className="p-4 text-gray-500">{s.unit}</td>
+                                            <td className="p-4 text-gray-500">{s.role}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </Modal>
+                </div>
+            );
+        };
+
+        const StaffDirectory = ({ staffData, onDelete }) => {
+            const [filter, setFilter] = useState('All');
+            const [search, setSearch] = useState('');
+            const [openMenuId, setOpenMenuId] = useState(null);
+            const [selectedStaff, setSelectedStaff] = useState(null); 
+
+            useEffect(() => {
+                const handleClickOutside = () => setOpenMenuId(null);
+                window.addEventListener('click', handleClickOutside);
+                return () => window.removeEventListener('click', handleClickOutside);
+            }, []);
+
+            const handleMenuClick = (e, id) => {
+                e.stopPropagation();
+                setOpenMenuId(openMenuId === id ? null : id);
+            };
+
+            const handleRowClick = (staff) => setSelectedStaff(staff);
+
+            const filteredData = staffData.filter(staff => {
+                const matchCategory = filter === 'All' || staff.category === filter;
+                const matchSearch = staff.name.toLowerCase().includes(search.toLowerCase()) || 
+                                    staff.unit.toLowerCase().includes(search.toLowerCase()) ||
+                                    staff.employeeId.includes(search);
+                return matchCategory && matchSearch;
+            });
+
+            return (
+                <div className="space-y-6 animate-fade-in">
+                    <div className="flex flex-col md:flex-row justify-between gap-4 items-end md:items-center">
+                        <div>
+                            <h2 className="text-2xl font-bold text-[#2C2C2C]">Direktori Pegawai</h2>
+                            <p className="text-sm text-gray-500">Kelola data seluruh pegawai rumah sakit.</p>
+                        </div>
+                        <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+                            <div className="relative flex-1">
+                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                                <input 
+                                    type="text" placeholder="Cari Nama / ID / Unit..." 
+                                    className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#17B8A5] text-sm"
+                                    value={search} onChange={(e) => setSearch(e.target.value)}
+                                />
+                            </div>
+                            <div className="relative">
+                                <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                                <select 
+                                    className="pl-10 pr-8 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#17B8A5] appearance-none bg-white text-sm cursor-pointer"
+                                    value={filter} onChange={(e) => setFilter(e.target.value)}
+                                >
+                                    <option value="All">Semua Profesi</option>
+                                    <optgroup label="Medis">{JOB_CATEGORIES.MEDIS.map(c => <option key={c} value={c}>{c}</option>)}</optgroup>
+                                    <optgroup label="Keperawatan">{JOB_CATEGORIES.KEPERAWATAN.map(c => <option key={c} value={c}>{c}</option>)}</optgroup>
+                                    <optgroup label="Penunjang">{JOB_CATEGORIES.PENUNJANG.map(c => <option key={c} value={c}>{c}</option>)}</optgroup>
+                                    <optgroup label="Non-Medis">{JOB_CATEGORIES.NON_MEDIS.map(c => <option key={c} value={c}>{c}</option>)}</optgroup>
+                                </select>
+                                <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" size={14} />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-white rounded-xl shadow-sm overflow-visible border border-gray-200 min-h-[400px]">
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left">
+                                <thead className="bg-gray-50 border-b border-gray-100">
+                                    <tr>
+                                        <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase w-32">ID Pegawai</th>
+                                        <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase">Nama & Profesi</th>
+                                        <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase">Jabatan & Unit</th>
+                                        <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase">Shift</th>
+                                        <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase text-right">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-100">
+                                    {filteredData.map((staff) => {
+                                        let avatarColor = 'bg-gray-400';
+                                        if (JOB_CATEGORIES.MEDIS.includes(staff.category)) avatarColor = 'bg-[#17B8A5]';
+                                        else if (JOB_CATEGORIES.KEPERAWATAN.includes(staff.category)) avatarColor = 'bg-blue-400';
+                                        else if (JOB_CATEGORIES.PENUNJANG.includes(staff.category)) avatarColor = 'bg-purple-400';
+                                        else if (JOB_CATEGORIES.NON_MEDIS.includes(staff.category)) avatarColor = 'bg-orange-400';
+
+                                        return (
+                                            <tr key={staff.id} onClick={() => handleRowClick(staff)} className="hover:bg-[#F0FDFA] transition-colors cursor-pointer group">
+                                                <td className="px-6 py-4 align-top">
+                                                    <span className="font-mono text-xs font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded">{staff.employeeId}</span>
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-sm ${avatarColor}`}>
+                                                            {staff.name.substring(0,2).toUpperCase()}
+                                                        </div>
+                                                        <div>
+                                                            <p className="font-bold text-gray-800 text-sm group-hover:text-[#17B8A5] transition-colors">{staff.name}</p>
+                                                            <p className="text-xs text-gray-400">{staff.category}</p>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4 align-middle">
+                                                    <p className="text-sm font-bold text-gray-700">{staff.role}</p>
+                                                    <p className="text-xs text-gray-500">{staff.unit}</p>
+                                                    <span className="text-[10px] text-gray-400 border border-gray-200 px-1.5 py-0.5 rounded mt-1 inline-block bg-white">{staff.employeeType}</span>
+                                                </td>
+                                                <td className="px-6 py-4 align-middle">
+                                                    <span className={`px-3 py-1 text-xs rounded-full font-bold flex w-fit items-center gap-2 ${staff.currentShift === 'Pagi' ? 'bg-green-100 text-green-700' : staff.currentShift === 'Malam' ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-500'}`}>
+                                                        <Clock size={12}/> {staff.currentShift}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4 text-right relative align-middle">
+                                                    <button onClick={(e) => handleMenuClick(e, staff.id)} className="p-2 rounded-full hover:bg-gray-200 text-gray-400 hover:text-gray-700 transition"><MoreVertical size={18} /></button>
+                                                    {openMenuId === staff.id && (
+                                                        <div className="absolute right-8 top-8 w-48 bg-white shadow-xl rounded-lg border border-gray-100 z-50 animate-fade-in origin-top-right overflow-hidden">
+                                                            <button onClick={(e) => { e.stopPropagation(); handleRowClick(staff); setOpenMenuId(null); }} className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3 border-b border-gray-50"><Eye size={16} className="text-[#17B8A5]"/> Lihat Detail</button>
+                                                            <button onClick={(e) => { e.stopPropagation(); onDelete(staff.id); setOpenMenuId(null); }} className="w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-red-50 flex items-center gap-3"><Trash2 size={16}/> Hapus</button>
+                                                        </div>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        )
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    {/* DETAIL MODAL */}
+                    <Modal isOpen={!!selectedStaff} onClose={() => setSelectedStaff(null)} title="Detail Data Pegawai">
+                        {selectedStaff && (
+                            <div className="space-y-8">
+                                <div className="flex flex-col md:flex-row items-center md:items-start gap-6 border-b border-gray-100 pb-6">
+                                    <div className="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center text-3xl font-bold text-gray-400 shadow-inner">{selectedStaff.name.substring(0,2).toUpperCase()}</div>
+                                    <div className="text-center md:text-left flex-1">
+                                        <h2 className="text-2xl font-bold text-gray-800">{selectedStaff.name}</h2>
+                                        <p className="text-[#17B8A5] font-semibold">{selectedStaff.role}</p>
+                                        <div className="flex flex-wrap justify-center md:justify-start gap-2 mt-3">
+                                            <span className="bg-gray-100 text-gray-600 text-xs px-3 py-1 rounded-full border border-gray-200 font-mono">ID: {selectedStaff.employeeId}</span>
+                                            <span className="bg-[#E8F8F6] text-[#0F8F80] text-xs px-3 py-1 rounded-full border border-[#17B8A5]">{selectedStaff.category}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="space-y-4">
+                                    <h4 className="text-sm font-bold text-gray-400 uppercase tracking-wider border-b border-gray-100 pb-2 flex items-center gap-2"><User size={16}/> Biodata Diri</h4>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                                        <div className="flex items-start gap-3"><div><User size={16} className="text-gray-400"/></div><div><p className="text-xs text-gray-400">Jenis Kelamin</p><p className="text-sm font-semibold text-gray-700">{selectedStaff.gender || '-'}</p></div></div>
+                                        <div className="flex items-start gap-3"><div><Phone size={16} className="text-gray-400"/></div><div><p className="text-xs text-gray-400">Telepon</p><p className="text-sm font-semibold text-gray-700">{selectedStaff.phone || '-'}</p></div></div>
+                                    </div>
+                                </div>
+                                <div className="space-y-4 pt-4">
+                                     <h4 className="text-sm font-bold text-gray-400 uppercase tracking-wider border-b border-gray-100 pb-2 flex items-center gap-2"><Briefcase size={16}/> Pekerjaan & Legalitas</h4>
+                                     <div className="grid grid-cols-2 gap-4">
+                                        <div><p className="text-xs text-gray-400">Unit Kerja</p><p className="text-sm font-semibold text-gray-700">{selectedStaff.unit}</p></div>
+                                        <div><p className="text-xs text-gray-400">SIP (Izin Praktik)</p><p className="text-sm font-bold text-[#17B8A5]">{selectedStaff.sipNumber !== '-' ? selectedStaff.sipNumber : 'Tidak Perlu'}</p></div>
+                                     </div>
+                                </div>
+                            </div>
+                        )}
+                    </Modal>
+                </div>
+            );
+        };
+
+        const StaffForm = ({ onAddStaff }) => {
+            const [formData, setFormData] = useState({
+                employeeId: '', name: '', role: '', unit: '', category: 'Dokter Umum', employeeType: 'Tetap',
+                sipNumber: '', sipExpiry: '', gender: 'Laki-laki', phone: '', email: '', address: ''
+            });
+            
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                if(!formData.employeeId || !formData.name || !formData.unit) return alert("ID, Nama dan Unit Kerja Wajib Diisi");
+                
+                const isMedical = REQUIRED_SIP_DOCS.includes(formData.category);
+                if(isMedical && !formData.sipNumber) return alert(`Kategori "${formData.category}" wajib melengkapi data SIP.`);
+
+                onAddStaff({
+                    ...formData,
+                    id: Math.random(),
+                    joinDate: new Date().toISOString().split('T')[0],
+                    performance: [],
+                    currentShift: 'Libur',
+                    status: 'Active',
+                    kpi: []
+                });
+                alert("Data Staf Berhasil Disimpan");
+                setFormData({ 
+                    employeeId: '', name: '', role: '', unit: '', category: 'Dokter Umum', employeeType: 'Tetap', 
+                    sipNumber: '', sipExpiry: '', gender: 'Laki-laki', phone: '', email: '', address: '' 
+                });
+            };
+
+            const isMedicalForm = REQUIRED_SIP_DOCS.includes(formData.category);
+            const ChevronDownIcon = () => <ChevronRight className="rotate-90 text-gray-400" size={16}/>;
+
+            return (
+                <div className="space-y-6 animate-fade-in">
+                    <h2 className="text-2xl font-bold text-[#2C2C2C]">Input Data SDM Baru</h2>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-200">
+                            <h3 className="font-bold text-gray-800 mb-6 flex items-center gap-2 border-b pb-4"><UserPlus size={20} className="text-[#17B8A5]" /> Identitas & Penempatan</h3>
+                            <div className="space-y-5">
+                                <div><label className="text-xs font-bold text-gray-500 uppercase">ID Pegawai (NIP/NIK)</label><input value={formData.employeeId} onChange={e => setFormData({...formData, employeeId: e.target.value})} className="w-full mt-1 px-4 py-2.5 border border-gray-300 rounded-lg font-mono focus:ring-2 focus:ring-[#17B8A5] outline-none" placeholder="Contoh: 199001..." /></div>
+                                <div><label className="text-xs font-bold text-gray-500 uppercase">Nama Lengkap</label><input value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full mt-1 px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#17B8A5] outline-none" placeholder="Contoh: Budi Santoso" /></div>
+                                <div className="grid grid-cols-2 gap-5">
+                                    <div><label className="text-xs font-bold text-gray-500 uppercase">Profesi</label><div className="relative"><select value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className="w-full mt-1 px-4 py-2.5 border border-gray-300 rounded-lg bg-white appearance-none focus:ring-2 focus:ring-[#17B8A5] outline-none"><optgroup label="Medis">{JOB_CATEGORIES.MEDIS.map(c => <option key={c} value={c}>{c}</option>)}</optgroup><optgroup label="Keperawatan">{JOB_CATEGORIES.KEPERAWATAN.map(c => <option key={c} value={c}>{c}</option>)}</optgroup><optgroup label="Penunjang">{JOB_CATEGORIES.PENUNJANG.map(c => <option key={c} value={c}>{c}</option>)}</optgroup><optgroup label="Non-Medis">{JOB_CATEGORIES.NON_MEDIS.map(c => <option key={c} value={c}>{c}</option>)}</optgroup></select><div className="absolute right-3 top-1/2 mt-0.5 transform -translate-y-1/2 pointer-events-none"><ChevronDownIcon/></div></div></div>
+                                    <div><label className="text-xs font-bold text-gray-500 uppercase">Unit Kerja</label><div className="relative"><select value={formData.unit} onChange={e => setFormData({...formData, unit: e.target.value})} className="w-full mt-1 px-4 py-2.5 border border-gray-300 rounded-lg bg-white appearance-none focus:ring-2 focus:ring-[#17B8A5] outline-none"><option value="">-- Pilih Unit --</option>{WORK_UNITS.map((u, i) => <option key={i} value={u}>{u}</option>)}</select><div className="absolute right-3 top-1/2 mt-0.5 transform -translate-y-1/2 pointer-events-none"><ChevronDownIcon/></div></div></div>
+                                </div>
+                                <div><label className="text-xs font-bold text-gray-500 uppercase">Jabatan</label><input value={formData.role} onChange={e => setFormData({...formData, role: e.target.value})} className="w-full mt-1 px-4 py-2.5 border border-gray-300 rounded-lg outline-none" placeholder="Contoh: Kepala Ruangan" /></div>
+                            </div>
+                        </div>
+                        <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-200">
+                             <h3 className="font-bold text-gray-800 mb-6 flex items-center gap-2 border-b pb-4"><Briefcase size={20} className="text-[#17B8A5]" /> Legalitas (SIP)</h3>
+                             {!isMedicalForm ? (
+                                <div className="h-40 flex flex-col items-center justify-center text-gray-400 bg-gray-50 rounded-lg text-sm p-6 text-center border-2 border-dashed"><Briefcase size={32} className="mb-2 opacity-50"/><p>Kategori <strong>{formData.category}</strong> tidak memerlukan input SIP.</p></div>
+                             ) : (
+                                <div className="space-y-4">
+                                    <div className="bg-yellow-50 p-3 rounded-lg border border-yellow-100 mb-2"><p className="text-xs text-yellow-700"><strong>Penting:</strong> Wajib input SIP yang berlaku.</p></div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div><label className="text-xs font-bold text-gray-600 uppercase">No. SIP</label><input value={formData.sipNumber} onChange={e => setFormData({...formData, sipNumber: e.target.value})} className="w-full mt-1 px-3 py-2 border rounded-lg outline-none" /></div>
+                                        <div><label className="text-xs font-bold text-gray-600 uppercase">Masa Berlaku</label><input type="date" value={formData.sipExpiry} onChange={e => setFormData({...formData, sipExpiry: e.target.value})} className="w-full mt-1 px-3 py-2 border rounded-lg outline-none" /></div>
+                                    </div>
+                                </div>
+                             )}
+                             <button onClick={handleSubmit} className="w-full mt-8 py-3 rounded-lg text-white font-bold shadow bg-[#17B8A5] hover:bg-[#0F8F80] transition">Simpan Data Pegawai</button>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const PerformanceModule = ({ staffData }) => {
+            const [selectedId, setSelectedId] = useState(staffData[0]?.id);
+            const [searchQuery, setSearchQuery] = useState('');
+            const filteredStaff = staffData.filter(s => s.name.toLowerCase().includes(searchQuery.toLowerCase()) || s.unit.toLowerCase().includes(searchQuery.toLowerCase()));
+            const staff = staffData.find(s => s.id === parseInt(selectedId));
+
+            return (
+                <div className="space-y-6 animate-fade-in">
+                    <h2 className="text-2xl font-bold text-[#2C2C2C]">Evaluasi Kinerja (KPI & OPPE)</h2>
+                    <div className="flex flex-col md:flex-row gap-6">
+                        <div className="w-full md:w-1/4 bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col h-[600px]">
+                            <div className="p-3 bg-gray-50 border-b"><div className="relative"><Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} /><input type="text" placeholder="Cari Pegawai..." className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#17B8A5]" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}/></div></div>
+                            <div className="flex-1 overflow-y-auto p-2 space-y-1">{filteredStaff.map(s => (<button key={s.id} onClick={() => setSelectedId(s.id)} className={`w-full text-left p-3 rounded-lg text-sm transition ${selectedId === s.id ? 'bg-[#17B8A5] text-white shadow' : 'hover:bg-gray-100'}`}><div className="font-bold">{s.name}</div><div className={`text-xs ${selectedId === s.id ? 'text-white' : 'text-gray-500'}`}>{s.unit}</div></button>))}</div>
+                        </div>
+                        <div className="w-full md:w-3/4 space-y-6">
+                            {staff && (
+                                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                                    <h3 className="text-xl font-bold text-gray-800">{staff.name}</h3>
+                                    <p className="text-gray-500 text-sm">{staff.role} - {staff.unit}</p>
+                                    <div className="mt-4"><p className="text-sm font-bold text-gray-600 mb-2">Indikator Kinerja Utama (KPI)</p>
+                                        {staff.kpi && staff.kpi.length > 0 ? (
+                                            <div className="space-y-3">{staff.kpi.map((k, i) => (<div key={i} className="flex justify-between items-center bg-gray-50 p-3 rounded border border-gray-100"><span className="text-sm text-gray-700">{k.indicator}</span><span className="font-bold text-[#17B8A5]">{k.score}/100</span></div>))}</div>
+                                        ) : (<p className="text-sm text-gray-400 italic">Belum ada data KPI untuk periode ini.</p>)}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const App = () => {
+            const [user, setUser] = useState(null);
+            const [registeredUsers, setRegisteredUsers] = useState([
+                { name: "Admin Utama", email: "admin@rs.com", password: "password123" }
+            ]);
+
+            const [activeTab, setActiveTab] = useState('dashboard');
+            const [sidebarOpen, setSidebarOpen] = useState(false);
+            const [staffData, setStaffData] = useState(INITIAL_DATA);
+
+            const handleLogin = (userData) => setUser(userData);
+            const handleLogout = () => setUser(null);
+
+            const handleDelete = (id) => {
+                if(confirm('Yakin ingin menghapus data ini?')) {
+                    setStaffData(staffData.filter(s => s.id !== id));
+                }
+            };
+
+            if (!user) {
+                return (
+                    <AuthPage 
+                        onLogin={handleLogin} 
+                        registeredUsers={registeredUsers} 
+                        setRegisteredUsers={setRegisteredUsers} 
+                    />
+                );
+            }
+
+            return (
+                <div className="flex min-h-screen bg-[#F7F7F7] font-sans text-gray-800">
+                    <Sidebar 
+                        activeTab={activeTab} 
+                        setActiveTab={setActiveTab} 
+                        isOpen={sidebarOpen} 
+                        toggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+                        user={user}
+                        onLogout={handleLogout}
+                    />
+                    <div className="flex-1 flex flex-col min-w-0 overflow-hidden h-screen">
+                        <header className="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-6 shadow-sm shrink-0 z-10">
+                            <div className="flex items-center gap-4"><button className="md:hidden text-gray-500" onClick={() => setSidebarOpen(true)}><Menu /></button><h2 className="text-lg font-bold text-gray-700 capitalize">{activeTab.replace('_', ' ')}</h2></div>
+                            <div className="flex items-center gap-3"><div className="text-right hidden sm:block"><div className="text-sm font-bold text-gray-700">RS Sejahtera Utama</div><div className="text-xs text-gray-500">Sistem Informasi Manajemen SDM</div></div><div className="w-8 h-8 rounded-lg bg-[#17B8A5] flex items-center justify-center text-white font-bold">RS</div></div>
+                        </header>
+                        <main className="flex-1 overflow-y-auto p-4 md:p-6 pb-20">
+                            {activeTab === 'dashboard' && <Dashboard staffData={staffData} />}
+                            {activeTab === 'directory' && <StaffDirectory staffData={staffData} onDelete={handleDelete} />}
+                            {activeTab === 'crud' && <StaffForm onAddStaff={(s) => { setStaffData([...staffData, s]); setActiveTab('directory'); }} />}
+                            {activeTab === 'performance' && <PerformanceModule staffData={staffData} />}
+                        </main>
+                    </div>
+                </div>
+            );
+        };
+
+        const root = createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
