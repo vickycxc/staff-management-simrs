@@ -32,10 +32,10 @@ export const masuk = async (req: Request, res: Response) => {
         if (!isPasswordCorrect) {
             return res.status(401).json({ pesanError: "PASSWORD_SALAH" });
         }
-        // const token = generateToken(adminTanpaPassword.id, res);
+        const token = generateToken(adminTanpaPassword.id, res);
         return res.status(200).json({ 
             admin: adminTanpaPassword,
-            // token
+            token
         });
     } catch (error) {
         console.error("Error di masuk controller:", error);
@@ -75,8 +75,8 @@ export const daftar = async (req: Request, res: Response) => {
             },
         });
         const { password: _, ...adminTanpaPassword } = adminBaru;
-            // const token = generateToken(adminTanpaPassword.id, res);
-        return res.status(201).json({admin: adminTanpaPassword,
+            const token = generateToken(adminTanpaPassword.id, res);
+        return res.status(201).json({admin: adminTanpaPassword, token,
         });
     } catch (error) {
         console.error("Error di daftar controller:", error);
