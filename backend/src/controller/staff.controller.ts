@@ -38,10 +38,10 @@ export const updateStaff = async (req: Request, res: Response) => {
     if (!req.body) {
             return res.status(400).json({ pesanError: "TIDAK_ADA_HEADER" });
     }
-    const { id, namaLkG, nip, jenisKelamin, alamat, noTelp, email, kategoriProfesi, kategoriUnitKerja, jabatanSpesifik, statusKepegawaian, peran, sip } = req.body; 
+    const { id, namaLkG, nip, jenisKelamin, alamat, noTelp, email, kategoriProfesi, kategoriUnitKerja, jabatanSpesifik, statusKepegawaian, peran, sip, sipExp } = req.body; 
     console.log("body update", req.body)
     try {
-        if ( !namaLkG || !nip || !jenisKelamin || !alamat || !noTelp ||  !email || !kategoriProfesi || !kategoriUnitKerja || !jabatanSpesifik || !peran) {
+        if (!id || !namaLkG || !nip || !jenisKelamin || !alamat || !noTelp ||  !email || !kategoriProfesi || !kategoriUnitKerja || !jabatanSpesifik || !peran) {
             return res.status(400).json({ pesanError: "TIDAK_LENGKAP" });
         }
         let sipUrl: string | null = null;
@@ -50,7 +50,7 @@ export const updateStaff = async (req: Request, res: Response) => {
         }
         const staffDiperbarui = await prisma.staff.update({
         where: {
-nip},            data: {
+id},            data: {
                 namaLkG,
                 nip,
                 jenisKelamin,
@@ -63,6 +63,7 @@ nip},            data: {
                 statusKepegawaian,
                 peran,
                 sipUrl,
+                sipExp
             }
              });
             return res.status(200).json({ staffDiperbarui });
@@ -78,7 +79,7 @@ export const addStaff = async (req: Request, res: Response) => {
     if (!req.body) {
         return res.status(400).json({ pesanError: "TIDAK_ADA_HEADER" });
     }
-    const { namaLkG, nip, jenisKelamin, alamat, noTelp, email, kategoriProfesi, kategoriUnitKerja, jabatanSpesifik, peran, sip } = req.body;
+    const { namaLkG, nip, jenisKelamin, alamat, noTelp, email, kategoriProfesi, kategoriUnitKerja, jabatanSpesifik, peran, sip, sipExp } = req.body;
     try {
         if (!namaLkG || !nip || !jenisKelamin || !alamat || !noTelp ||  !email || !kategoriProfesi || !kategoriUnitKerja || !jabatanSpesifik || !peran) {
             console.log(req.body)
@@ -103,6 +104,7 @@ export const addStaff = async (req: Request, res: Response) => {
                 statusKepegawaian: "PEGAWAI_TETAP",
                 peran,
                 sipUrl,
+                sipExp,
                 kinerjaStaff: {
                     create: {
                         targetTimePasienBaru: "5 menit",
