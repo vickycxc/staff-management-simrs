@@ -235,13 +235,12 @@
             if (['MANAJEMEN_DAN_ADMIN','KEUANGAN','IT_DAN_SIMRS','KEAMANAN','LAYANAN_UMUM'].includes(categoryEnum)) return 'NON_MEDIS';
             return 'PENUNJANG_MEDIS';
         };
-
         // --- KONFIGURASI KATEGORI PROFESI (Sama seperti sebelumnya) ---
         const JOB_CATEGORIES = {
-            MEDIS: ['Dokter Spesialis', 'Dokter Umum', 'Dokter Gigi'],
-            KEPERAWATAN: ['Perawat', 'Bidan'],
-            PENUNJANG: ['Farmasi', 'Laboratorium', 'Radiologi', 'Gizi', 'Fisioterapi', 'Rekam Medis'],
-            NON_MEDIS: ['Manajemen & Admin', 'Keuangan', 'IT & SIMRS', 'Teknik (IPSRS)', 'Keamanan', 'Layanan Umum']
+            MEDIS: ['DOKTER_SPESIALIS', 'DOKTER_UMUM', 'DOKTER_GIGI_DAN_MULUT'],
+            KEPERAWATAN: ['PERAWAT', 'BIDAN'],
+            PENUNJANG: ['FARMASI', 'LABORATORIUM', 'RADIOLOGI', 'GIZI', 'FISIOTERAPI', 'REKAM_MEDIS'],
+            NON_MEDIS: ['MANAJEMEN_DAN_ADMIN', 'KEUANGAN', 'IT_DAN_SIMRS', 'IPSRS', 'KEAMANAN', 'LAYANAN_UMUM']
         };
 
         // --- MAPPING UNIT KERJA BERDASARKAN KATEGORI ---
@@ -511,15 +510,15 @@
                     const lower = text.toLowerCase();
 
                     if (lower.includes('sip') || lower.includes('expired')) {
-                        const missingSip = staffData.filter(s => !s.sipUrl && (s.category.includes('Dokter') || s.category.includes('Perawat')));
+                        const missingSip = staffData.filter(s => !s.sipUrl && (s.kategoriProfesi.includes('Dokter') || s.kategoriProfesi.includes('Perawat')));
                         response.text = missingSip.length > 0 ? `Ditemukan ${missingSip.length} pegawai medis tanpa upload SIP.` : "Semua data SIP terlihat aman (berdasarkan data yang ada).";
                         response.data = missingSip.map(s => ({ title: s.name, desc: s.unit }));
                     } else if (lower.includes('total') || lower.includes('dokter')) {
-                        const docs = staffData.filter(s => s.category.toLowerCase().includes('dokter'));
+                        const docs = staffData.filter(s => s.kategoriProfesi.toLowerCase().includes('dokter'));
                         response.text = `Total ada ${docs.length} dokter terdaftar.`;
-                        response.data = docs.map(s => ({ title: s.name, desc: s.category }));
+                        response.data = docs.map(s => ({ title: s.name, desc: s.kategoriProfesi }));
                     } else if (lower.includes('perawat')) {
-                        const nurses = staffData.filter(s => s.category.toLowerCase().includes('perawat'));
+                        const nurses = staffData.filter(s => s.kategoriProfesi.toLowerCase().includes('perawat'));
                         response.text = `Total ada ${nurses.length} perawat terdaftar.`;
                         response.data = nurses.map(s => ({ title: s.name, desc: s.unit }));
                     }
@@ -575,9 +574,13 @@
 
         // --- DASHBOARD ---
         const Dashboard = ({ staffData }) => {
+            
+
             const [modalData, setModalData] = useState({ isOpen: false, title: '', list: [] });
 
-            const getStaffByCategory = (cats) => staffData.filter(s => cats.includes(s.category));
+            console.log('Staff Data:', staffData); // Debugging line
+
+            const getStaffByCategory = (cats) => staffData.filter(s => cats.includes(s.kategoriProfesi));
 
             const openListModal = (title, dataList) => {
                 setModalData({ isOpen: true, title, list: dataList });
@@ -617,7 +620,7 @@
                                     {staffData.slice(0, 5).map(s => (
                                         <tr key={s.id} className="border-b dark:border-gray-700">
                                             <td className="p-4 font-bold">{s.name}</td>
-                                            <td className="p-4">{s.category}</td>
+                                            <td className="p-4">{s.kategoriProfesi}</td>
                                             <td className="p-4">{s.unit}</td>
                                         </tr>
                                     ))}
@@ -950,27 +953,30 @@
                         headers: { 'x-auth-token': authToken }
                     });
                     const result = await response.json();
+                    setStaffData(result);
                     console.log("Data staff diterima:", result);
-                    if(Array.isArray(result)) {
-                        const transformed = result
-                        .filter(item => !item.deletedAt)
-                        .map(item => ({
-                            id: item.id,
-                            nip: item.nip,
-                            nama: item.namaLkG,
-                            jabatanSpesifikle: item.jabatanSpesifik,
-                            unit: ENUM_TO_UNIT[item.kategoriUnitKerja] || item.kategoriUnitKerja,
-                            kategoriUnitKerja: ENUM_TO_PROFESI[item.kategoriProfesi] || item.kategoriProfesi,
-                            statusKepegawaian: MAPPING.STATUS[item.statusKepegawaian] || item.statusKepegawaian,
-                            email: item.email,
-                            noTelp: item.noTelp,
-                            alamat: item.alamat,
-                            jenisKelamin: MAPPING.GENDER[item.jenisKelamin],
-                            sipUrl: item.sipUrl,
-                            kinerjaStaff: item.kinerjaStaff || {}
-                        }));
-                        setStaffData(transformed);
-                    }
+                    setStaffData(result)
+                    // if(Array.isArray(result)) {
+                    //     const transformed = result
+                    //     .filter(item => !item.deletedAt)
+                    //     .map(item => ({
+                    //         id: item.id,
+                    //         nip: item.nip,
+                    //         nama: item.namaLkG,
+                    //         jabatanSpesifik: item.jabatanSpesifik,
+                    //         unit: ENUM_TO_UNIT[item.kategoriUnitKerja] || item.kategoriUnitKerja,
+                    //         kategoriUnitKerja: ENUM_TO_PROFESI[item.kategoriProfesi] || item.kategoriProfesi,
+                    //         statusKepegawaian: MAPPING.STATUS[item.statusKepegawaian] || item.statusKepegawaian,
+                    //         email: item.email,
+                    //         noTelp: item.noTelp,
+                    //         alamat: item.alamat,
+                    //         jenisKelamin: MAPPING.GENDER[item.jenisKelamin],
+                    //         sipUrl: item.sipUrl,
+                    //         kinerjaStaff: item.kinerjaStaff || {}
+                    //     }));
+                    //     console.log("Data staff setelah transformasi:", transformed);
+                    //     setStaffData(result);
+                    // }
                 } catch (err) {
                     console.error("Gagal mengambil data:", err);
                 }

@@ -109,7 +109,6 @@
         // 1. KONFIGURASI API & MAPPING
         // ==========================================
         const API_BASE_URL = "https://staff-management-simrs-78e5d8a13f9a.herokuapp.com";
-        // const API_BASE_URL = "localhost:3000";
 
         // --- ENUM MAPPINGS (Frontend String <-> Backend Enum) ---
         const MAPPING = {
@@ -236,7 +235,7 @@
             return 'PENUNJANG_MEDIS';
         };
 
-        // --- KONFIGURASI KATEGORI PROFESI (Sama seperti sebelumnya) ---
+        // --- KONFIGURASI KATEGORI PROFESI ---
         const JOB_CATEGORIES = {
             MEDIS: ['Dokter Spesialis', 'Dokter Umum', 'Dokter Gigi'],
             KEPERAWATAN: ['Perawat', 'Bidan'],
@@ -264,8 +263,6 @@
             'Keamanan': ["Pos Security Utama", "Pos Security IGD", "Patroli"],
             'Layanan Umum': ["Cleaning Service", "Laundry", "Supir Ambulans", "Sanitasi & Kebersihan"]
         };
-
-        const REQUIRED_SIP_DOCS = [...JOB_CATEGORIES.MEDIS, ...JOB_CATEGORIES.KEPERAWATAN, ...JOB_CATEGORIES.PENUNJANG];
 
         // ==========================================
         // 2. KOMPONEN LOGIN (AUTH)
@@ -360,9 +357,7 @@
                         throw new Error(getFriendlyError(data.pesanError) || "Terjadi kesalahan");
                     }
 
-                    // MODIFIED: Menggunakan token dari state, bukan cookie
                     if (data.token) {
-                        // Pass user data dan token ke App
                         onLogin(data.admin || { name: formData.name || 'Admin', email: formData.email }, data.token);
                     } else if (isRegister) {
                         setSuccessMsg("Registrasi Berhasil! Silakan masuk.");
@@ -950,22 +945,34 @@
                         headers: { 'x-auth-token': authToken }
                     });
                     const result = await response.json();
-                    console.log("Data staff diterima:", result);
-                    if(Array.isArray(result)) {
-                        const transformed = result
+                    
+                    // --- PERBAIKAN DI SINI ---
+                    // Result adalah object { staffList: [...] }, bukan array langsung.
+                    const rawData = result.staffList || []; 
+                    
+                    if(Array.isArray(rawData)) {
+                        const transformed = rawData
                         .filter(item => !item.deletedAt)
                         .map(item => ({
                             id: item.id,
-                            nip: item.nip,
-                            nama: item.namaLkG,
-                            jabatanSpesifikle: item.jabatanSpesifik,
+                            
+                            // MAPPING KEY YANG BENAR (Frontend Key : Backend Key)
+                            employeeId: item.nip,          // Frontend pakai 'employeeId'
+                            name: item.namaLkG,            // Frontend pakai 'name'
+                            
+                            role: item.jabatanSpesifik,    // Frontend pakai 'role'
+                            
+                            // Convert ENUM BACKEND ke STRING FRONTEND agar filter tab bekerja
+                            category: ENUM_TO_PROFESI[item.kategoriProfesi] || item.kategoriProfesi, 
+                            
+                            // Convert ENUM UNIT
                             unit: ENUM_TO_UNIT[item.kategoriUnitKerja] || item.kategoriUnitKerja,
-                            kategoriUnitKerja: ENUM_TO_PROFESI[item.kategoriProfesi] || item.kategoriProfesi,
-                            statusKepegawaian: MAPPING.STATUS[item.statusKepegawaian] || item.statusKepegawaian,
+                            
+                            status: MAPPING.STATUS[item.statusKepegawaian] || item.statusKepegawaian,
                             email: item.email,
-                            noTelp: item.noTelp,
-                            alamat: item.alamat,
-                            jenisKelamin: MAPPING.GENDER[item.jenisKelamin],
+                            phone: item.noTelp,
+                            address: item.alamat,
+                            gender: MAPPING.GENDER[item.jenisKelamin] || 'Laki-laki',
                             sipUrl: item.sipUrl,
                             kinerjaStaff: item.kinerjaStaff || {}
                         }));

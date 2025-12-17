@@ -85,6 +85,20 @@
             background-image: radial-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px);
             background-size: 20px 20px;
         }
+
+        /* Spinner */
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #17B8A5;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body class="bg-[#F7F7F7] text-[#2C2C2C] dark:bg-gray-900 dark:text-gray-100 transition-colors duration-300">
@@ -235,13 +249,12 @@
             if (['MANAJEMEN_DAN_ADMIN','KEUANGAN','IT_DAN_SIMRS','KEAMANAN','LAYANAN_UMUM'].includes(categoryEnum)) return 'NON_MEDIS';
             return 'PENUNJANG_MEDIS';
         };
-
         // --- KONFIGURASI KATEGORI PROFESI (Sama seperti sebelumnya) ---
         const JOB_CATEGORIES = {
-            MEDIS: ['Dokter Spesialis', 'Dokter Umum', 'Dokter Gigi'],
-            KEPERAWATAN: ['Perawat', 'Bidan'],
-            PENUNJANG: ['Farmasi', 'Laboratorium', 'Radiologi', 'Gizi', 'Fisioterapi', 'Rekam Medis'],
-            NON_MEDIS: ['Manajemen & Admin', 'Keuangan', 'IT & SIMRS', 'Teknik (IPSRS)', 'Keamanan', 'Layanan Umum']
+            MEDIS: ['DOKTER_SPESIALIS', 'DOKTER_UMUM', 'DOKTER_GIGI_DAN_MULUT'],
+            KEPERAWATAN: ['PERAWAT', 'BIDAN'],
+            PENUNJANG: ['FARMASI', 'LABORATORIUM', 'RADIOLOGI', 'GIZI', 'FISIOTERAPI', 'REKAM_MEDIS'],
+            NON_MEDIS: ['MANAJEMEN_DAN_ADMIN', 'KEUANGAN', 'IT_DAN_SIMRS', 'IPSRS', 'KEAMANAN', 'LAYANAN_UMUM']
         };
 
         // --- MAPPING UNIT KERJA BERDASARKAN KATEGORI ---
@@ -510,16 +523,19 @@
                     let response = { text: "Maaf, saya tidak mengerti. Coba gunakan kata kunci 'SIP', 'Total', atau nama profesi.", data: null };
                     const lower = text.toLowerCase();
 
+                    // Defensive check for staffData before filtering
+                    const safeStaffData = Array.isArray(staffData) ? staffData : [];
+
                     if (lower.includes('sip') || lower.includes('expired')) {
-                        const missingSip = staffData.filter(s => !s.sipUrl && (s.category.includes('Dokter') || s.category.includes('Perawat')));
+                        const missingSip = safeStaffData.filter(s => !s.sipUrl && (s.kategoriProfesi.includes('Dokter') || s.kategoriProfesi.includes('Perawat')));
                         response.text = missingSip.length > 0 ? `Ditemukan ${missingSip.length} pegawai medis tanpa upload SIP.` : "Semua data SIP terlihat aman (berdasarkan data yang ada).";
                         response.data = missingSip.map(s => ({ title: s.name, desc: s.unit }));
                     } else if (lower.includes('total') || lower.includes('dokter')) {
-                        const docs = staffData.filter(s => s.category.toLowerCase().includes('dokter'));
+                        const docs = safeStaffData.filter(s => s.kategoriProfesi.toLowerCase().includes('dokter'));
                         response.text = `Total ada ${docs.length} dokter terdaftar.`;
-                        response.data = docs.map(s => ({ title: s.name, desc: s.category }));
+                        response.data = docs.map(s => ({ title: s.name, desc: s.kategoriProfesi }));
                     } else if (lower.includes('perawat')) {
-                        const nurses = staffData.filter(s => s.category.toLowerCase().includes('perawat'));
+                        const nurses = safeStaffData.filter(s => s.kategoriProfesi.toLowerCase().includes('perawat'));
                         response.text = `Total ada ${nurses.length} perawat terdaftar.`;
                         response.data = nurses.map(s => ({ title: s.name, desc: s.unit }));
                     }
@@ -575,9 +591,13 @@
 
         // --- DASHBOARD ---
         const Dashboard = ({ staffData }) => {
+            
             const [modalData, setModalData] = useState({ isOpen: false, title: '', list: [] });
 
-            const getStaffByCategory = (cats) => staffData.filter(s => cats.includes(s.category));
+            // Ensure staffData is an array to prevent crashes
+            const safeStaffData = Array.isArray(staffData) ? staffData : [];
+
+            const getStaffByCategory = (cats) => safeStaffData.filter(s => cats.includes(s.kategoriProfesi));
 
             const openListModal = (title, dataList) => {
                 setModalData({ isOpen: true, title, list: dataList });
@@ -614,7 +634,7 @@
                                     <tr><th className="p-4">Nama</th><th className="p-4">Profesi</th><th className="p-4">Unit</th></tr>
                                 </thead>
                                 <tbody className="dark:text-gray-200">
-                                    {staffData.slice(0, 5).map(s => (
+                                    {safeStaffData.slice(0, 5).map(s => (
                                         <tr key={s.id} className="border-b dark:border-gray-700">
                                             <td className="p-4 font-bold">{s.name}</td>
                                             <td className="p-4">{s.category}</td>
@@ -804,7 +824,10 @@
             const [filter, setFilter] = useState('All');
             const [search, setSearch] = useState('');
             
-            const filteredData = staffData.filter(staff => (filter === 'All' || staff.category === filter) && (staff.name.toLowerCase().includes(search.toLowerCase()) || staff.unit.toLowerCase().includes(search.toLowerCase())));
+            // Defensive check for staffData
+            const safeStaffData = Array.isArray(staffData) ? staffData : [];
+
+            const filteredData = safeStaffData.filter(staff => (filter === 'All' || staff.kategoriProfesi === filter) && (staff.name.toLowerCase().includes(search.toLowerCase()) || staff.unit.toLowerCase().includes(search.toLowerCase())));
 
             return (
                 <div className="space-y-6 animate-fade-in">
@@ -822,11 +845,11 @@
                             <table className="w-full text-left">
                                 <thead className="bg-gray-50 dark:bg-gray-700 border-b dark:border-gray-600 dark:text-gray-200"><tr><th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase w-32">NIP</th><th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Nama & Profesi</th><th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Jabatan & Unit</th><th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase text-right">Aksi</th></tr></thead>
                                 <tbody className="divide-y divide-gray-100 dark:divide-gray-700 dark:text-gray-200">{filteredData.map((staff) => {
-                                    let avatarColor = staff.category.includes('Dokter') ? 'bg-[#17B8A5]' : staff.category.includes('Perawat') ? 'bg-blue-400' : 'bg-gray-400';
+                                    let avatarColor = staff.category && staff.category.includes('Dokter') ? 'bg-[#17B8A5]' : staff.category && staff.category.includes('Perawat') ? 'bg-blue-400' : 'bg-gray-400';
                                     return (
                                         <tr key={staff.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer group">
                                             <td className="px-6 py-4 align-top"><span className="font-mono text-xs font-bold text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-600 px-2 py-1 rounded">{staff.employeeId}</span></td>
-                                            <td className="px-6 py-4"><div className="flex items-center gap-3"><div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-sm ${avatarColor}`}>{staff.name.substring(0,2).toUpperCase()}</div><div><p className="font-bold text-gray-800 dark:text-gray-200 text-sm">{staff.name}</p><p className="text-xs text-gray-400">{staff.category}</p></div></div></td>
+                                            <td className="px-6 py-4"><div className="flex items-center gap-3"><div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-sm ${avatarColor}`}>{staff.name ? staff.name.substring(0,2).toUpperCase() : '??'}</div><div><p className="font-bold text-gray-800 dark:text-gray-200 text-sm">{staff.name}</p><p className="text-xs text-gray-400">{staff.category}</p></div></div></td>
                                             <td className="px-6 py-4 align-middle"><p className="text-sm font-bold text-gray-700 dark:text-gray-300">{staff.role}</p><p className="text-xs text-gray-500 dark:text-gray-400">{staff.unit}</p></td>
                                             <td className="px-6 py-4 text-right align-middle">
                                                 <button onClick={() => onEdit(staff)} className="px-3 py-1 bg-blue-50 text-blue-600 rounded text-xs font-bold border border-blue-200 hover:bg-blue-100">Edit</button>
@@ -842,8 +865,9 @@
         };
 
         const PerformanceModule = ({ staffData }) => {
-            const [selectedId, setSelectedId] = useState(staffData[0]?.id);
-            const staff = staffData.find(s => s.id === parseInt(selectedId));
+            const safeStaffData = Array.isArray(staffData) ? staffData : [];
+            const [selectedId, setSelectedId] = useState(safeStaffData[0]?.id);
+            const staff = safeStaffData.find(s => s.id === parseInt(selectedId));
 
             // Flatten logic for display
             // Note: API returns `kinerjaStaff` as object. We will adapt display to it.
@@ -853,7 +877,7 @@
                 <div className="space-y-6 animate-fade-in"><h2 className="text-2xl font-bold text-[#2C2C2C] dark:text-white">Evaluasi Kinerja</h2>
                     <div className="flex flex-col md:flex-row gap-6 h-[calc(100vh-200px)]">
                         <div className="w-full md:w-1/4 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col h-full">
-                            <div className="flex-1 overflow-y-auto p-2 space-y-1">{staffData.map(s => (<button key={s.id} onClick={() => setSelectedId(s.id)} className={`w-full text-left p-3 rounded-lg text-sm transition-all duration-200 ${selectedId === s.id ? 'bg-[#17B8A5] text-white shadow-md' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'}`}><div className="font-bold">{s.name}</div><div className={`text-xs ${selectedId === s.id ? 'text-white/80' : 'text-gray-500 dark:text-gray-400'}`}>{s.unit}</div></button>))}</div>
+                            <div className="flex-1 overflow-y-auto p-2 space-y-1">{safeStaffData.map(s => (<button key={s.id} onClick={() => setSelectedId(s.id)} className={`w-full text-left p-3 rounded-lg text-sm transition-all duration-200 ${selectedId === s.id ? 'bg-[#17B8A5] text-white shadow-md' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'}`}><div className="font-bold">{s.name}</div><div className={`text-xs ${selectedId === s.id ? 'text-white/80' : 'text-gray-500 dark:text-gray-400'}`}>{s.unit}</div></button>))}</div>
                         </div>
                         <div className="w-full md:w-3/4 flex flex-col h-full bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700">
                              {staff ? (
@@ -939,40 +963,65 @@
             const [user, setUser] = useState(null);
             const [token, setToken] = useState(null); // TOKEN disimpan di State
             const [editingStaff, setEditingStaff] = useState(null); 
+            // --- NEW: Loading State untuk Data Fetching ---
+            const [isLoadingData, setIsLoadingData] = useState(false);
 
             // Fetch Staff Data
             const fetchStaffData = async (tokenOverride) => {
                 const authToken = tokenOverride || token;
                 if(!authToken) return;
 
+                // --- START LOADING ---
+                setIsLoadingData(true);
+
                 try {
                     const response = await fetch(`${API_BASE_URL}/api/staff/`, {
                         headers: { 'x-auth-token': authToken }
                     });
-                    const result = await response.json();
-                    console.log("Data staff diterima:", result);
-                    if(Array.isArray(result)) {
-                        const transformed = result
-                        .filter(item => !item.deletedAt)
-                        .map(item => ({
-                            id: item.id,
-                            nip: item.nip,
-                            nama: item.namaLkG,
-                            jabatanSpesifikle: item.jabatanSpesifik,
-                            unit: ENUM_TO_UNIT[item.kategoriUnitKerja] || item.kategoriUnitKerja,
-                            kategoriUnitKerja: ENUM_TO_PROFESI[item.kategoriProfesi] || item.kategoriProfesi,
-                            statusKepegawaian: MAPPING.STATUS[item.statusKepegawaian] || item.statusKepegawaian,
-                            email: item.email,
-                            noTelp: item.noTelp,
-                            alamat: item.alamat,
-                            jenisKelamin: MAPPING.GENDER[item.jenisKelamin],
-                            sipUrl: item.sipUrl,
-                            kinerjaStaff: item.kinerjaStaff || {}
-                        }));
-                        setStaffData(transformed);
+
+                    if (!response.ok) {
+                         throw new Error(`HTTP Error: ${response.status}`);
                     }
+
+                    const result = await response.json();
+                    
+                    // --- VALIDATION: Ensure result is an array ---
+                    let rawData = [];
+                    if (Array.isArray(result)) {
+                        rawData = result;
+                    } else if (result && Array.isArray(result.data)) {
+                        // Handle potential wrapper object { data: [...] }
+                        rawData = result.data;
+                    } else {
+                        console.warn("API did not return an array:", result);
+                        rawData = []; // Fallback to empty array to prevent crash
+                    }
+
+                    // --- TRANSFORMATION: Map Backend Fields to Frontend State ---
+                    const mappedData = rawData.map(item => ({
+                        ...item,
+                        id: item.id,
+                        employeeId: item.nip,
+                        name: item.namaLkG, // Map namaLkG -> name
+                        role: item.jabatanSpesifik, // Map jabatanSpesifik -> role
+                        // Readable Strings for UI
+                        unit: ENUM_TO_UNIT[item.kategoriUnitKerja] || item.kategoriUnitKerja, 
+                        category: ENUM_TO_PROFESI[item.kategoriProfesi] || item.kategoriProfesi, 
+                        // Keep Enum for Filtering
+                        kategoriProfesi: item.kategoriProfesi, 
+                        // Performance data
+                        kinerjaStaff: item.kinerjaStaff || {} 
+                    }));
+
+                    setStaffData(mappedData);
+                    console.log("raw data:", rawData);
+                    console.log("Data staff diterima:", mappedData);
                 } catch (err) {
                     console.error("Gagal mengambil data:", err);
+                    setStaffData([]); // Ensure it stays an array on error
+                } finally {
+                    // --- STOP LOADING (Finished) ---
+                    setIsLoadingData(false);
                 }
             };
 
@@ -1003,6 +1052,20 @@
 
             if (!user || !token) {
                 return <AuthPage onLogin={handleLogin} />;
+            }
+
+            // --- LOADING SCREEN ---
+            // Jika sedang loading data, tampilkan Spinner, jangan Dashboard dulu
+            if (isLoadingData) {
+                return (
+                    <div className="flex min-h-screen items-center justify-center bg-[#F7F7F7] dark:bg-gray-900">
+                        <div className="text-center">
+                            <div className="loader mx-auto mb-4"></div>
+                            <h2 className="text-xl font-bold text-[#17B8A5]">Memuat Data...</h2>
+                            <p className="text-gray-500">Mohon tunggu sebentar, sedang mengambil data terbaru.</p>
+                        </div>
+                    </div>
+                );
             }
 
             return (

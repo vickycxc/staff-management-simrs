@@ -39,9 +39,9 @@ export const updateStaff = async (req: Request, res: Response) => {
             return res.status(400).json({ pesanError: "TIDAK_ADA_HEADER" });
     }
     const { id, namaLkG, nip, jenisKelamin, alamat, noTelp, email, kategoriProfesi, kategoriUnitKerja, jabatanSpesifik, statusKepegawaian, peran, sip } = req.body; 
-    
+    console.log("body update", req.body)
     try {
-        if (!id || !namaLkG || !nip || !jenisKelamin || !alamat || !noTelp ||  !email || !kategoriProfesi || !kategoriUnitKerja || !jabatanSpesifik || !statusKepegawaian || !peran) {
+        if ( !id || !namaLkG || !nip || !jenisKelamin || !alamat || !noTelp ||  !email || !kategoriProfesi || !kategoriUnitKerja || !jabatanSpesifik || !statusKepegawaian || !peran) {
             return res.status(400).json({ pesanError: "TIDAK_LENGKAP" });
         }
         let sipUrl: string | null = null;
@@ -50,8 +50,7 @@ export const updateStaff = async (req: Request, res: Response) => {
         }
         const staffDiperbarui = await prisma.staff.update({
         where: {
-            id,},
-            data: {
+id},            data: {
                 namaLkG,
                 nip,
                 jenisKelamin,
