@@ -26,7 +26,7 @@ model Staff {
   id         Int      @id @default(autoincrement()) 
   kinerjaStaff KinerjaStaff?
   namaLkG    String
-  nip        String   
+  nip        String    @unique
   jenisKelamin  jenisKelamin
   alamat     String
   noTelp    String
