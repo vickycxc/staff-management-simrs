@@ -3,15 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SIMRS HR - Manajemen SDM Terpadu</title>
+    <title>SIMRS HR - Manajemen SDM Terpadu (Terintegrasi)</title>
     
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Babel for JSX transformation -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-    <!-- Add Noto Sans Font -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <script>
@@ -35,38 +32,61 @@
     </script>
 
     <style>
-        body { font-family: 'Noto Sans', sans-serif; }
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: #f1f1f1; }
-        .dark ::-webkit-scrollbar-track { background: #374151; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        .dark ::-webkit-scrollbar-thumb { background: #4b5563; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        body {
+            font-family: 'Noto Sans', sans-serif;
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        .dark ::-webkit-scrollbar-track {
+            background: #374151;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+        }
+        .dark ::-webkit-scrollbar-thumb {
+            background: #4b5563;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
         
+        /* Animations */
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px) scale(0.98); }
             to { opacity: 1; transform: translateY(0) scale(1); }
         }
-        .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
-        
-        /* Toast Animation */
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
+        .animate-fade-in {
+            animation: fadeIn 0.4s ease-out forwards;
         }
-        .animate-slide-in { animation: slideIn 0.3s ease-out forwards; }
-
-        .typing-dot { animation: bounce 1.4s infinite ease-in-out both; }
+        
+        /* Typing indicator bounce */
+        .typing-dot {
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
         .typing-dot:nth-child(1) { animation-delay: -0.32s; }
         .typing-dot:nth-child(2) { animation-delay: -0.16s; }
-        @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
-        .bg-pattern { background-image: radial-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px); background-size: 20px 20px; }
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+
+        /* Login Background Pattern */
+        .bg-pattern {
+            background-image: radial-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
     </style>
 </head>
 <body class="bg-[#F7F7F7] text-[#2C2C2C] dark:bg-gray-900 dark:text-gray-100 transition-colors duration-300">
     <div id="root"></div>
 
-    <!-- React Application -->
     <script type="text/babel" data-type="module">
         import React, { useState, useEffect, useRef } from 'https://esm.sh/react@18.2.0';
         import { createRoot } from 'https://esm.sh/react-dom@18.2.0/client';
@@ -81,10 +101,97 @@
             EyeOff, AlertCircle
         } from 'https://esm.sh/lucide-react@0.263.1';
 
-        // --- API CONFIGURATION ---
-        const API_URL = 'http://localhost:3000/api';
+        // ==========================================
+        // 1. KONFIGURASI API & MAPPING
+        // ==========================================
+        const API_BASE_URL = "https://staff-management-simrs-78e5d8a13f9a.herokuapp.com";
 
-        // --- CONSTANTS ---
+        const MAPPING = {
+            GENDER: {
+                'Laki-laki': 'LAKI_LAKI', 'Perempuan': 'PEREMPUAN',
+                'LAKI_LAKI': 'Laki-laki', 'PEREMPUAN': 'Perempuan'
+            },
+            ROLE: {
+                'MEDIS': 'Medis', 'NON_MEDIS': 'Non-Medis',
+                'PENUNJANG_MEDIS': 'Penunjang', 'PERAWAT_DAN_BIDAN': 'Keperawatan'
+            },
+            STATUS: {
+                'Pegawai Tetap': 'PEGAWAI_TETAP', 
+                'Kontrak': 'KONTRAK', 
+                'Mitra (Dokter Tamu)': 'MITRA_DOKTER_TAMU',
+                'Magang (Internship)': 'KONTRAK', 
+                'PPDS': 'MITRA_DOKTER_TAMU',      
+                'Tetap': 'PEGAWAI_TETAP', 
+                'Mitra': 'MITRA_DOKTER_TAMU',
+                'PEGAWAI_TETAP': 'Pegawai Tetap', 
+                'KONTRAK': 'Kontrak', 
+                'MITRA_DOKTER_TAMU': 'Mitra (Dokter Tamu)'
+            },
+            PROFESI_TO_ENUM: {
+                'Dokter Spesialis': 'DOKTER_SPESIALIS', 'Dokter Umum': 'DOKTER_UMUM',
+                'Dokter Gigi': 'DOKTER_GIGI_DAN_MULUT', 'Perawat': 'PERAWAT', 'Bidan': 'BIDAN',
+                'Farmasi': 'FARMASI', 'Laboratorium': 'LABORATORIUM', 'Radiologi': 'RADIOLOGI',
+                'Gizi': 'GIZI', 'Fisioterapi': 'FISIOTERAPI', 'Rekam Medis': 'REKAM_MEDIS',
+                'Manajemen & Admin': 'MANAJEMEN_DAN_ADMIN', 'Keuangan': 'KEUANGAN',
+                'IT & SIMRS': 'IT_DAN_SIMRS', 'Teknik (IPSRS)': 'IPSRS',
+                'Keamanan': 'KEAMANAN', 'Layanan Umum': 'LAYANAN_UMUM'
+            },
+            UNIT_TO_ENUM: {
+                 "Instalasi Gawat Darurat (IGD)": "INSTALASI_GAWAT_DARURAT_IGD",
+                 "Rawat Inap Utama": "RAWAT_INAP", "Rawat Inap (Lt 1)": "RAWAT_INAP",
+                 "Rawat Inap (Lt 2)": "RAWAT_INAP", "Rawat Inap (VIP)": "RAWAT_INAP",
+                 "Poli Umum": "POLI_UMUM", "Poli Gigi & Mulut": "POLI_GIGI_DAN_MULUT",
+                 "Poli Mata": "POLI_MATA", "Poli Penyakit Dalam": "POLI_PENYAKIT_DALAM",
+                 "Poli Kandungan (Obgyn)": "POLI_OBYN", "Poli Anak": "POLI_ANAK",
+                 "Poli Kulit & Kelamin": "POLI_KULIT_DAN_KELAMIN", "Poli THT": "POLI_THT",
+                 "Poli Kejiwaan": "POLI_KEJIWAAN", "Poli Rehabilitasi Medik": "POLI_REHABILITASI_MEDIK",
+                 "Poli Saraf": "POLI_SYARAF", "Poli Orthopedi": "POLI_ORTHOPEDI",
+                 "Poli Bedah Umum": "POLI_BEDAH_UMUM",
+                 "ICU / ICCU": "INTENSIVE_CARE_UNIT_ICU_ICCU_HCU_NICU",
+                 "Instalasi Gizi (Dapur)": "GIZI", "Poli Gizi": "GIZI",
+                 "Laboratorium Patologi Klinik": "LABORATORIUM_PATOLOGI_KLINIK",
+                 "Laboratorium Patologi Anatomi": "LABORATORIUM_PATOLOGI_ANATOMI",
+                 "Bank Darah": "BANK_DARAH", "Instalasi Radiologi": "RADIOLOGI",
+                 "Instalasi Farmasi (Depot Rawat Jalan)": "INSTALASI_FARMASI_RAWAT_JALAN",
+                 "Instalasi Farmasi (Depot Rawat Inap)": "INSTALASI_FARMASI_RAWAT_INAP",
+                 "Gudang Farmasi": "INSTALASI_FARMASI_RAWAT_INAP",
+                 "Unit Rehabilitasi Medik": "FISIOTERAPI", "Unit Rekam Medis & Pendaftaran": "REKAM_MEDIS",
+                 "Ruang Server & IT Support": "RUANG_SERVER_DAN_IT_SUPPORT",
+                 "Front Office": "FRONT_OFFICE", "Back Office": "BACK_OFFICE",
+                 "HRD & Diklat": "HRD_DAN_DIKLAT", "Kamar Operasi (IBS)": "KAMAR_OPERASI_IBS",
+                 "Kamar Bersalin (VK)": "KAMAR_BERSALIN", "Ruang Nifas": "KAMAR_BERSALIN",
+                 "Maintenance & Teknisi": "IPSRS", "Pos Security Utama": "KEAMANAN_DAN_KETERTIBAN",
+                 "Pos Security IGD": "KEAMANAN_DAN_KETERTIBAN", "Patroli": "KEAMANAN_DAN_KETERTIBAN",
+                 "Sanitasi & Kebersihan": "SANITASI_DAN_KEBERSIHAN", "Laundry": "LAUNDRY",
+                 "Supir Ambulans": "SUPIR_AMBULANCE", "Cleaning Service": "CLEANING_SERVICE",
+                 "Kasir": "KEUANGAN", "Akuntansi": "KEUANGAN", "Unit Medical Check Up (MCU)": "POLI_UMUM"
+            }
+        };
+
+        const ENUM_TO_PROFESI = Object.fromEntries(Object.entries(MAPPING.PROFESI_TO_ENUM).map(a => [a[1], a[0]]));
+        const ENUM_TO_UNIT = Object.fromEntries(Object.entries(MAPPING.UNIT_TO_ENUM).map(a => [a[1], a[0]]));
+
+        const ERROR_MESSAGES = {
+            "TIDAK_ADA_HEADER": "Sesi Anda telah habis. Silakan login kembali.",
+            "EMAIL_KOSONG": "Email tidak boleh kosong.",
+            "PASSWORD_KOSONG": "Password tidak boleh kosong.",
+            "ADMIN_TIDAK_DITEMUKAN": "Akun tidak ditemukan. Periksa email Anda.",
+            "PASSWORD_SALAH": "Password salah.",
+            "INTERNAL_ERROR": "Terjadi kesalahan pada server. Silakan coba lagi.",
+            "TIDAK_LENGKAP": "Data form tidak lengkap. Harap isi semua field wajib.",
+            "KURANG_6_KARAKTER": "Password minimal 6 karakter.",
+            "EMAIL_SUDAH_DIGUNAKAN": "Email sudah terdaftar. Gunakan email lain."
+        };
+
+        const getFriendlyError = (code) => ERROR_MESSAGES[code] || `Terjadi kesalahan: ${code}`;
+
+        const getPeranFromCategory = (categoryEnum) => {
+            if (['DOKTER_SPESIALIS','DOKTER_UMUM','DOKTER_GIGI_DAN_MULUT'].includes(categoryEnum)) return 'MEDIS';
+            if (['PERAWAT','BIDAN'].includes(categoryEnum)) return 'PERAWAT_DAN_BIDAN';
+            if (['MANAJEMEN_DAN_ADMIN','KEUANGAN','IT_DAN_SIMRS','KEAMANAN','LAYANAN_UMUM'].includes(categoryEnum)) return 'NON_MEDIS';
+            return 'PENUNJANG_MEDIS';
+        };
+
         const JOB_CATEGORIES = {
             MEDIS: ['Dokter Spesialis', 'Dokter Umum', 'Dokter Gigi'],
             KEPERAWATAN: ['Perawat', 'Bidan'],
@@ -96,7 +203,7 @@
             'Dokter Spesialis': ["Poli Penyakit Dalam", "Poli Bedah Umum", "Poli Anak", "Poli Kandungan (Obgyn)", "Poli Mata", "Poli THT", "Poli Saraf", "Poli Jantung", "Poli Kulit & Kelamin", "Poli Kejiwaan", "Poli Rehabilitasi Medik", "Poli Orthopedi", "Rawat Inap Utama", "ICU / ICCU", "Kamar Operasi (IBS)"],
             'Dokter Umum': ["Instalasi Gawat Darurat (IGD)", "Poli Umum", "Unit Medical Check Up (MCU)"],
             'Dokter Gigi': ["Poli Gigi & Mulut"],
-            'Perawat': ["Instalasi Gawat Darurat (IGD)", "Rawat Inap (Lt 1)", "Rawat Inap (Lt 2)", "Rawat Inap (VIP)", "ICU / ICCU", "Kamar Operasi (IBS)", "Poli Umum", "Poli Spesialis", "Hemodialisa", "Poli Kejiwaan", "Poli Rehabilitasi Medik"],
+            'Perawat': ["Instalasi Gawat Darurat (IGD)", "Rawat Inap (Lt 1)", "Rawat Inap (Lt 2)", "Rawat Inap (VIP)", "ICU / ICCU", "Kamar Operasi (IBS)", "Poli Umum", "Poli Spesialis", "Poli Kejiwaan", "Poli Rehabilitasi Medik"],
             'Bidan': ["Kamar Bersalin (VK)", "Poli Kandungan (Obgyn)", "Ruang Nifas"],
             'Farmasi': ["Instalasi Farmasi (Depot Rawat Jalan)", "Instalasi Farmasi (Depot Rawat Inap)", "Gudang Farmasi"],
             'Laboratorium': ["Laboratorium Patologi Klinik", "Laboratorium Patologi Anatomi", "Bank Darah"],
@@ -112,45 +219,32 @@
             'Layanan Umum': ["Cleaning Service", "Laundry", "Supir Ambulans", "Sanitasi & Kebersihan"]
         };
 
-        const REQUIRED_SIP_DOCS = [...JOB_CATEGORIES.MEDIS, ...JOB_CATEGORIES.KEPERAWATAN, ...JOB_CATEGORIES.PENUNJANG];
+        // ==========================================
+        // 2. KOMPONEN UTAMA
+        // ==========================================
 
-        // --- COMPONENTS UTILS ---
-        
-        // Custom Toast Notification
-        const Toast = ({ message, type, onClose }) => {
-            useEffect(() => {
-                const timer = setTimeout(onClose, 3000);
-                return () => clearTimeout(timer);
-            }, [onClose]);
+        const BrandSidebar = () => (
+            <div className="hidden lg:flex w-1/2 bg-[#17B8A5] relative overflow-hidden flex-col justify-between p-12 text-white h-screen fixed left-0 top-0">
+                <div className="absolute inset-0 bg-pattern opacity-30"></div>
+                <div className="absolute -top-20 -right-20 w-80 h-80 bg-white opacity-10 rounded-full blur-3xl"></div>
+                <div className="absolute bottom-10 left-10 w-40 h-40 bg-teal-900 opacity-20 rounded-full blur-2xl"></div>
 
-            const bgClass = type === 'success' ? 'bg-green-600' : 'bg-red-600';
-            const icon = type === 'success' ? <CheckCircle size={20}/> : <AlertTriangle size={20}/>;
-
-            return (
-                <div className={`fixed top-5 right-5 z-[100] ${bgClass} text-white px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3 animate-slide-in`}>
-                    {icon}
-                    <span className="font-bold text-sm">{message}</span>
-                    <button onClick={onClose}><X size={16}/></button>
-                </div>
-            );
-        };
-
-        const Modal = ({ isOpen, onClose, title, children, large = false }) => {
-            if (!isOpen) return null;
-            return (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fade-in">
-                    <div className={`bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full ${large ? 'max-w-4xl' : 'max-w-3xl'} max-h-[90vh] overflow-hidden flex flex-col border border-gray-100 dark:border-gray-700`}>
-                        <div className="flex justify-between items-center p-5 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
-                            <h3 className="text-lg font-bold text-gray-800 dark:text-white">{title}</h3>
-                            <button onClick={onClose} className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full text-gray-500 dark:text-gray-400 transition-colors"><X size={20}/></button>
-                        </div>
-                        <div className="p-0 overflow-y-auto flex-1">{children}</div>
+                <div className="relative z-10 flex items-center gap-3">
+                    <div className="bg-white p-2 rounded-lg text-[#17B8A5]">
+                        <Activity size={32} strokeWidth={2.5} />
                     </div>
+                    <h1 className="text-3xl font-bold tracking-tight">SIMRS <span className="font-light opacity-90">HR</span></h1>
                 </div>
-            );
-        };
+                <div className="relative z-10 space-y-6">
+                    <h2 className="text-4xl font-bold leading-tight">Sistem Kepegawaian <br/> Rumah Sakit Terintegrasi.</h2>
+                    <p className="text-teal-50 text-lg font-light max-w-md">
+                        Kelola akses masuk staf medis dan administrasi dengan aman dan terintegrasi dengan Database.
+                    </p>
+                </div>
+                <div className="relative z-10 text-xs opacity-60">&copy; 2024 SIMRS HR System.</div>
+            </div>
+        );
 
-        // --- AUTH & LOGIN ---
         const InputField = ({ label, type, placeholder, icon: Icon, value, onChange }) => {
             const [showPass, setShowPass] = useState(false);
             const isPassword = type === 'password';
@@ -159,7 +253,9 @@
                 <div className="space-y-1.5">
                     <label className="text-sm font-semibold text-gray-700">{label}</label>
                     <div className="relative group">
-                        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-[#17B8A5] transition-colors"><Icon size={18} /></div>
+                        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-[#17B8A5] transition-colors">
+                            <Icon size={18} />
+                        </div>
                         <input 
                             type={isPassword && showPass ? 'text' : type}
                             className="w-full pl-10 pr-10 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#17B8A5] bg-gray-50 focus:bg-white text-sm transition-all"
@@ -190,61 +286,53 @@
                 setSuccessMsg('');
                 setIsLoading(true);
 
-                if (!formData.email || !formData.password) {
-                    setError('Harap isi email dan password.'); 
-                    setIsLoading(false); return;
+                const endpoint = isRegister ? '/api/auth/daftar' : '/api/auth/masuk';
+                const body = isRegister 
+                    ? { nama: formData.name, email: formData.email, password: formData.password }
+                    : { email: formData.email, password: formData.password };
+
+                if (isRegister && formData.password !== formData.confirmPassword) {
+                    setError("Konfirmasi password tidak cocok");
+                    setIsLoading(false);
+                    return;
                 }
 
                 try {
-                    const endpoint = isRegister ? '/auth/daftar' : '/auth/masuk';
-                    const payload = isRegister 
-                        ? { nama: formData.nama, email: formData.email, password: formData.password }
-                        : { email: formData.email, password: formData.password };
-
-                    if (isRegister && formData.password !== formData.confirmPassword) {
-                        setError('Konfirmasi password tidak cocok.'); setIsLoading(false); return;
-                    }
-
-                    const response = await fetch(`${API_URL}${endpoint}`, {
+                    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
+                        body: JSON.stringify(body)
                     });
-                    
+
                     const data = await response.json();
 
-                    if (response.ok) {
-                        if (isRegister) {
-                            setSuccessMsg("Registrasi Berhasil! Silakan masuk.");
-                            setIsRegister(false);
-                            setFormData({ nama: '', email: '', password: '', confirmPassword: '' });
-                        } else {
-                            onLogin(data.user);
-                        }
-                    } else {
-                        setError(data.error || 'Terjadi kesalahan pada server.');
+                    if (!response.ok) {
+                        throw new Error(getFriendlyError(data.pesanError) || "Terjadi kesalahan");
+                    }
+
+                    if (isRegister) {
+                        setSuccessMsg("Registrasi Berhasil! Silakan masuk kembali.");
+                        setIsRegister(false); 
+                        setFormData({ name: '', email: '', password: '', confirmPassword: '' });
+                        return; 
+                    }
+
+                    if (data.token) {
+                        onLogin(data.admin || { name: formData.name || 'Admin', email: formData.email }, data.token);
                     }
                 } catch (err) {
-                    setError('Gagal terhubung ke backend.');
+                    setError(err.message);
                 } finally {
                     setIsLoading(false);
                 }
             };
 
-            const BrandSidebar = () => (
-                <div className="hidden lg:flex w-1/2 bg-[#17B8A5] relative overflow-hidden flex-col justify-between p-12 text-white h-screen fixed left-0 top-0">
-                    <div className="absolute inset-0 bg-pattern opacity-30"></div>
-                    <div className="relative z-10 flex items-center gap-3">
-                        <div className="bg-white p-2 rounded-lg text-[#17B8A5]"><Activity size={32} strokeWidth={2.5} /></div>
-                        <h1 className="text-3xl font-bold tracking-tight">SIMRS <span className="font-light opacity-90">HR</span></h1>
-                    </div>
-                    <div className="relative z-10 space-y-6">
-                        <h2 className="text-4xl font-bold leading-tight">Sistem Kepegawaian <br/> Rumah Sakit.</h2>
-                        <p className="text-teal-50 text-lg font-light max-w-md">Kelola akses masuk staf medis dan administrasi dengan aman dan terintegrasi.</p>
-                    </div>
-                    <div className="relative z-10 text-xs opacity-60">&copy; 2024 SIMRS HR System.</div>
-                </div>
-            );
+            const toggleMode = () => {
+                setIsRegister(!isRegister);
+                setError('');
+                setSuccessMsg('');
+                setFormData({ name: '', email: '', password: '', confirmPassword: '' });
+            };
 
             return (
                 <div className="min-h-screen flex w-full bg-white lg:bg-[#F7F7F7]">
@@ -255,225 +343,956 @@
                                 <h2 className="text-3xl font-bold text-gray-800">{isRegister ? 'Buat Akun Baru' : 'Selamat Datang'}</h2>
                                 <p className="text-gray-500 mt-2">{isRegister ? 'Lengkapi data untuk akses SIMRS.' : 'Masuk untuk mengakses dashboard.'}</p>
                             </div>
-                            {error && <div className="bg-red-50 text-red-600 p-4 rounded-xl text-sm flex items-start gap-3 border border-red-100"><AlertCircle className="shrink-0 mt-0.5" size={16}/> <span>{error}</span></div>}
-                            {successMsg && <div className="bg-green-50 text-green-700 p-4 rounded-xl text-sm flex items-start gap-3 border border-green-100"><CheckCircle className="shrink-0 mt-0.5" size={16}/> <span>{successMsg}</span></div>}
-                            
+
+                            {error && (
+                                <div className="bg-red-50 text-red-600 p-4 rounded-xl text-sm flex items-start gap-3 border border-red-100 animate-fade-in">
+                                    <AlertCircle className="shrink-0 mt-0.5" size={16}/> <span>{error}</span>
+                                </div>
+                            )}
+                            {successMsg && (
+                                <div className="bg-green-50 text-green-700 p-4 rounded-xl text-sm flex items-start gap-3 border border-green-100 animate-fade-in">
+                                    <CheckCircle className="shrink-0 mt-0.5" size={16}/> <span>{successMsg}</span>
+                                </div>
+                            )}
+
                             <form onSubmit={handleSubmit} className="space-y-5">
-                                {isRegister && <InputField label="Nama Lengkap" type="text" placeholder="Contoh: dr. Budi Santoso" icon={User} value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />}
+                                {isRegister && (
+                                    <InputField label="Nama Lengkap" type="text" placeholder="Contoh: Budi Santoso" icon={User} value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
+                                )}
                                 <InputField label="Email" type="email" placeholder="nama@rs.com" icon={Mail} value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
                                 <InputField label="Password" type="password" placeholder="Minimal 6 karakter" icon={Lock} value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} />
-                                {isRegister && <InputField label="Konfirmasi Password" type="password" placeholder="Ulangi password" icon={CheckCircle} value={formData.confirmPassword} onChange={e => setFormData({...formData, confirmPassword: e.target.value})} />}
-                                <button type="submit" disabled={isLoading} className="w-full bg-[#17B8A5] hover:bg-[#129485] text-white font-bold py-3.5 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 mt-6 disabled:opacity-70">{isLoading ? 'Memproses...' : (isRegister ? 'Daftar Sekarang' : 'Masuk Dashboard')}</button>
+                                {isRegister && (
+                                    <InputField label="Konfirmasi Password" type="password" placeholder="Ulangi password" icon={CheckCircle} value={formData.confirmPassword} onChange={e => setFormData({...formData, confirmPassword: e.target.value})} />
+                                )}
+
+                                <button type="submit" disabled={isLoading} className="w-full bg-[#17B8A5] hover:bg-[#129485] text-white font-bold py-3.5 rounded-xl transition-all shadow-lg hover:shadow-teal-500/30 flex items-center justify-center gap-2 mt-6 disabled:opacity-70 disabled:cursor-not-allowed">
+                                    {isLoading ? (
+                                        <span className="flex items-center gap-2"><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div> Memproses...</span>
+                                    ) : (isRegister ? 'Daftar Sekarang' : 'Masuk Dashboard')}
+                                </button>
                             </form>
-                            <div className="text-center pt-4 border-t border-gray-100 mt-6"><p className="text-sm text-gray-600">{isRegister ? 'Sudah punya akun? ' : 'Belum punya akun? '}<button onClick={() => {setIsRegister(!isRegister); setError('');}} className="text-[#17B8A5] font-bold hover:underline ml-1">{isRegister ? 'Masuk sekarang' : 'Daftar di sini'}</button></p></div>
+
+                            <div className="text-center pt-4 border-t border-gray-100 mt-6">
+                                <p className="text-sm text-gray-600">
+                                    {isRegister ? 'Sudah punya akun? ' : 'Belum punya akun? '}
+                                    <button onClick={toggleMode} className="text-[#17B8A5] font-bold hover:underline transition-colors ml-1">
+                                        {isRegister ? 'Masuk sekarang' : 'Daftar di sini'}
+                                    </button>
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
             );
         };
 
-        // --- DASHBOARD & MODULES ---
+        const Modal = ({ isOpen, onClose, title, children, large = false }) => {
+            if (!isOpen) return null;
+            return (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fade-in">
+                    <div className={`bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full ${large ? 'max-w-4xl' : 'max-w-3xl'} max-h-[90vh] overflow-hidden flex flex-col border border-gray-100 dark:border-gray-700`}>
+                        <div className="flex justify-between items-center p-5 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+                            {/* Render title as string or JSX */}
+                            {typeof title === 'string' ? (
+                                <h3 className="text-lg font-bold text-gray-800 dark:text-white">{title}</h3>
+                            ) : (
+                                title
+                            )}
+                            <button onClick={onClose} className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full text-gray-500 dark:text-gray-400 transition-colors"><X size={20}/></button>
+                        </div>
+                        <div className="p-0 overflow-y-auto flex-1">{children}</div>
+                    </div>
+                </div>
+            );
+        };
+
+        const UserSettingsModal = ({ isOpen, onClose, user, onLogout, currentTheme, onThemeChange }) => {
+            if (!isOpen) return null;
+            return (
+                <Modal isOpen={isOpen} onClose={onClose} title="Pengaturan Akun" large={false}>
+                    <div className="flex h-[400px] flex-col md:flex-row">
+                        <div className="w-full md:w-1/3 bg-gray-50 dark:bg-gray-900 border-r border-gray-100 dark:border-gray-700 p-4">
+                            <nav className="space-y-1">
+                                <button className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium bg-white dark:bg-gray-700 text-[#17B8A5] shadow-sm"><User size={18}/> Profil Saya</button>
+                            </nav>
+                            <div className="mt-auto pt-8">
+                                <button onClick={onLogout} className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition">
+                                    <LogOut size={18}/> Keluar Aplikasi
+                                </button>
+                            </div>
+                        </div>
+                        <div className="flex-1 p-6 overflow-y-auto">
+                            <div className="space-y-6">
+                                <h4 className="text-gray-800 dark:text-white font-bold">Tema Aplikasi</h4>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div onClick={() => onThemeChange('light')} className={`border-2 rounded-xl p-4 cursor-pointer flex flex-col items-center gap-2 transition ${currentTheme === 'light' ? 'border-[#17B8A5] bg-blue-50 dark:bg-gray-700' : 'border-gray-200 dark:border-gray-700'}`}>
+                                        <Sun className="text-orange-400" size={32}/>
+                                        <span className="font-bold text-sm dark:text-white">Terang</span>
+                                    </div>
+                                    <div onClick={() => onThemeChange('dark')} className={`border-2 rounded-xl p-4 cursor-pointer flex flex-col items-center gap-2 transition ${currentTheme === 'dark' ? 'border-[#17B8A5] bg-gray-800' : 'border-gray-200 dark:border-gray-700'}`}>
+                                        <Moon className="text-indigo-400" size={32}/>
+                                        <span className="font-bold text-sm dark:text-white">Gelap</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </Modal>
+            );
+        };
+
+        const SmartHRAssistant = ({ staffData }) => {
+            const [messages, setMessages] = useState([
+                { id: 1, sender: 'bot', text: 'Halo! Saya Asisten HR. Saya bisa membantu mengecek data SIP, statistik, atau pencarian. Apa yang ingin Anda ketahui?', quickReplies: ['Cek SIP Expired', 'Total Dokter', 'Cek Perawat'] }
+            ]);
+            const [input, setInput] = useState('');
+            const [isTyping, setIsTyping] = useState(false);
+            const scrollRef = useRef(null);
+
+            useEffect(() => scrollRef.current?.scrollIntoView({ behavior: "smooth" }), [messages, isTyping]);
+
+            const handleSend = (text = input) => {
+                if (!text.trim()) return;
+                setMessages(prev => [...prev, { id: Date.now(), sender: 'user', text }]);
+                setInput('');
+                setIsTyping(true);
+
+                setTimeout(() => {
+                    let response = { text: "Maaf, saya tidak mengerti. Coba gunakan kata kunci 'SIP', 'Total', atau nama profesi.", data: null };
+                    const lower = text.toLowerCase();
+
+                    if (lower.includes('sip') || lower.includes('expired')) {
+                        const missingSip = staffData.filter(s => !s.sipUrl && (s.category.includes('Dokter') || s.category.includes('Perawat')));
+                        response.text = missingSip.length > 0 ? `Ditemukan ${missingSip.length} pegawai medis tanpa upload SIP.` : "Semua data SIP terlihat aman (berdasarkan data yang ada).";
+                        response.data = missingSip.map(s => ({ title: s.name, desc: s.unit }));
+                    } else if (lower.includes('total') || lower.includes('dokter')) {
+                        const docs = staffData.filter(s => s.category.toLowerCase().includes('dokter'));
+                        response.text = `Total ada ${docs.length} dokter terdaftar.`;
+                        response.data = docs.map(s => ({ title: s.name, desc: s.category }));
+                    } else if (lower.includes('perawat')) {
+                        const nurses = staffData.filter(s => s.category.toLowerCase().includes('perawat'));
+                        response.text = `Total ada ${nurses.length} perawat terdaftar.`;
+                        response.data = nurses.map(s => ({ title: s.name, desc: s.unit }));
+                    }
+
+                    setMessages(prev => [...prev, { id: Date.now()+1, sender: 'bot', ...response }]);
+                    setIsTyping(false);
+                }, 800);
+            };
+
+            return (
+                <div className="flex flex-col h-[calc(100vh-140px)] bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden animate-fade-in">
+                    <div className="bg-[#17B8A5] p-4 flex items-center gap-3 text-white shadow-sm">
+                        <div className="p-2 bg-white/20 rounded-full"><Bot size={24}/></div>
+                        <div><h3 className="font-bold">Asisten HR</h3><p className="text-xs opacity-90">Online • AI Support</p></div>
+                    </div>
+                    <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 dark:bg-gray-900">
+                        {messages.map(msg => (
+                            <div key={msg.id} className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}>
+                                <div className={`max-w-[80%] p-3.5 rounded-2xl text-sm ${msg.sender === 'user' ? 'bg-[#17B8A5] text-white rounded-tr-none' : 'bg-white dark:bg-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-600 rounded-tl-none shadow-sm'}`}>
+                                    {msg.text}
+                                </div>
+                                {msg.data && (
+                                    <div className="mt-2 w-[80%] bg-white dark:bg-gray-700 rounded-xl border border-gray-200 dark:border-gray-600 overflow-hidden shadow-sm">
+                                        <div className="max-h-48 overflow-y-auto divide-y divide-gray-100 dark:divide-gray-600">
+                                            {msg.data.map((d, i) => (
+                                                <div key={i} className="p-3 text-sm hover:bg-gray-50 dark:hover:bg-gray-600">
+                                                    <p className="font-bold text-gray-800 dark:text-gray-200">{d.title}</p>
+                                                    <p className="text-xs text-gray-500 dark:text-gray-400">{d.desc}</p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                                {msg.quickReplies && (
+                                    <div className="flex flex-wrap gap-2 mt-2">
+                                        {msg.quickReplies.map(r => (
+                                            <button key={r} onClick={() => handleSend(r)} className="text-xs px-3 py-1.5 bg-white dark:bg-gray-700 border border-[#17B8A5] text-[#17B8A5] rounded-full hover:bg-[#F0FDFA] transition">{r}</button>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+                        {isTyping && <div className="p-3 bg-white dark:bg-gray-700 rounded-2xl w-16 flex justify-center gap-1"><div className="w-2 h-2 bg-gray-400 rounded-full typing-dot"></div><div className="w-2 h-2 bg-gray-400 rounded-full typing-dot"></div><div className="w-2 h-2 bg-gray-400 rounded-full typing-dot"></div></div>}
+                        <div ref={scrollRef}/>
+                    </div>
+                    <form onSubmit={(e) => {e.preventDefault(); handleSend();}} className="p-4 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 flex gap-2">
+                        <input value={input} onChange={e => setInput(e.target.value)} placeholder="Tanya sesuatu..." className="flex-1 px-4 py-2 border rounded-full dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:border-[#17B8A5]"/>
+                        <button type="submit" className="p-2.5 bg-[#17B8A5] text-white rounded-full hover:bg-[#0F8F80] transition"><Send size={18}/></button>
+                    </form>
+                </div>
+            );
+        };
+
         const Dashboard = ({ staffData }) => {
             const [modalData, setModalData] = useState({ isOpen: false, title: '', list: [] });
             
-            const getSipWarnings = () => staffData.map(staff => {
-                if (!staff.sipExpiry || staff.sipExpiry === '-') return null;
-                const sipDate = new Date(staff.sipExpiry);
-                const diffDays = Math.ceil((sipDate - new Date()) / (1000 * 60 * 60 * 24));
-                if (diffDays <= 30) return { ...staff, warningStatus: 'red', daysLeft: diffDays };
-                if (diffDays <= 90) return { ...staff, warningStatus: 'orange', daysLeft: diffDays };
-                if (diffDays <= 180) return { ...staff, warningStatus: 'yellow', daysLeft: diffDays };
-                return null;
-            }).filter(Boolean).sort((a,b) => a.daysLeft - b.daysLeft);
+            // Logika SIP Expired (Warning Logic)
+            const expiredSipStaff = staffData.filter(s => {
+                if (!s.sipExpiry) return false;
+                const expiryDate = new Date(s.sipExpiry);
+                const today = new Date();
+                const diffTime = expiryDate - today;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                return diffDays <= 30; 
+            });
 
-            const warningList = getSipWarnings();
-            const getCount = (cats) => staffData.filter(s => cats.includes(s.category)).length;
+            // Efek: Munculkan Modal Peringatan Otomatis (Pop Up)
+            useEffect(() => {
+                if(expiredSipStaff.length > 0) {
+                     setModalData({ 
+                         isOpen: true, 
+                         // JUDUL POP-UP MERAH & IKON TANDA SERU
+                         title: (
+                            <div className="flex items-center gap-3 text-red-600">
+                                <AlertTriangle size={24} className="animate-pulse" />
+                                <span className="uppercase font-bold tracking-wide">Peringatan: SIP Kadaluarsa / Hampir Habis!</span>
+                            </div>
+                         ), 
+                         list: expiredSipStaff 
+                    });
+                }
+            }, [staffData]); 
 
-            const WidgetCard = ({ title, count, icon: Icon, colorClass, borderColorClass }) => (
-                <div className={`bg-white dark:bg-gray-800 p-5 rounded-xl shadow-sm border-l-4 ${borderColorClass} cursor-pointer hover:shadow-lg hover:-translate-y-1 transition-all group`}>
+            const getStaffByCategory = (cats) => staffData.filter(s => cats.includes(s.category));
+            const openListModal = (title, dataList) => {
+                setModalData({ isOpen: true, title, list: dataList });
+            };
+
+            const WidgetCard = ({ title, count, icon: Icon, colorClass, borderColorClass, onClick }) => (
+                <div onClick={onClick} className={`bg-white dark:bg-gray-800 p-5 rounded-xl shadow-sm border-l-4 ${borderColorClass} cursor-pointer hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group`}>
                     <div className="flex justify-between items-start">
-                        <div><p className="text-gray-500 dark:text-gray-400 text-xs font-bold uppercase tracking-wider">{title}</p><h3 className="text-3xl font-bold text-gray-800 dark:text-white mt-2">{count}</h3></div>
-                        <div className={`p-3 rounded-lg bg-gray-50 dark:bg-gray-700 ${colorClass}`}><Icon size={24} /></div>
+                        <div><p className="text-gray-500 dark:text-gray-400 text-xs font-bold uppercase tracking-wider">{title}</p><h3 className="text-3xl font-bold text-gray-800 dark:text-white mt-2 group-hover:text-[#17B8A5] transition-colors">{count}</h3></div>
+                        <div className={`p-3 rounded-lg bg-gray-50 dark:bg-gray-700 ${colorClass} group-hover:bg-white transition-colors`}><Icon size={24} /></div>
                     </div>
+                    <p className={`text-xs mt-4 font-semibold flex items-center gap-1 ${colorClass.replace('text-', 'text-opacity-80 text-')}`}>Lihat Daftar <ChevronRight size={12}/></p>
                 </div>
             );
 
             return (
                 <div className="space-y-8 animate-fade-in">
                     <div><h2 className="text-2xl font-bold text-[#2C2C2C] dark:text-white">Dashboard Operasional SDM</h2><p className="text-gray-500 dark:text-gray-400 text-sm">Ringkasan data pegawai dan status operasional hari ini.</p></div>
-                    {warningList.length > 0 && (
-                        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-4 rounded-xl flex items-center justify-between shadow-sm">
-                            <div className="flex items-center gap-3"><div className="p-2 bg-red-100 dark:bg-red-800 rounded-full text-red-600 dark:text-red-200 animate-pulse"><AlertTriangle size={24} /></div><div><h3 className="font-bold text-red-800 dark:text-red-200 text-lg">Peringatan: {warningList.length} SIP Pegawai Perlu Perhatian</h3></div></div>
+                    
+                    {/* WIDGET SHIFT HARI INI */}
+                     <div className="bg-gradient-to-r from-blue-600 to-blue-800 p-6 rounded-2xl text-white shadow-lg animate-fade-in relative overflow-hidden">
+                        <div className="absolute top-0 right-0 p-4 opacity-10"><Clock size={120} /></div>
+                        <div className="relative z-10">
+                            <h3 className="text-xl font-bold flex items-center gap-2"><Clock size={20}/> Shift Hari Ini (Pagi)</h3>
+                            <p className="text-blue-100 text-sm mb-4">Senin, 14 Oktober 2024</p>
+                            <div className="flex gap-4 overflow-x-auto pb-2">
+                                {[
+                                    {name: 'Dr. Budi (IGD)', status: 'Hadir', time: '07:00'},
+                                    {name: 'Sr. Siti (Lt 2)', status: 'Hadir', time: '07:00'},
+                                    {name: 'Br. Joko (Security)', status: 'Hadir', time: '07:00'},
+                                ].map((s, i) => (
+                                    <div key={i} className="bg-white/10 backdrop-blur-sm p-3 rounded-xl min-w-[150px] border border-white/10">
+                                        <p className="font-bold text-sm">{s.name}</p>
+                                        <div className="flex justify-between items-center mt-2">
+                                            <span className="text-xs bg-green-400/20 text-green-200 px-2 py-0.5 rounded">{s.status}</span>
+                                            <span className="text-xs">{s.time}</span>
+                                        </div>
+                                    </div>
+                                ))}
+                                <div className="flex items-center justify-center bg-white/5 rounded-xl min-w-[100px] cursor-pointer hover:bg-white/10">
+                                    <span className="text-xs font-bold">Lihat Semua →</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {expiredSipStaff.length > 0 && (
+                        <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-xl animate-fade-in flex items-start gap-3 shadow-sm">
+                            <div className="text-red-500"><AlertTriangle size={24}/></div>
+                            <div>
+                                <h3 className="font-bold text-red-800">Peringatan SIP Kadaluarsa</h3>
+                                <p className="text-sm text-red-600 mt-1">
+                                    Ditemukan <span className="font-bold">{expiredSipStaff.length} pegawai</span> dengan SIP yang sudah atau akan kadaluarsa dalam 30 hari ke depan.
+                                </p>
+                                <button onClick={() => openListModal((
+                                    <div className="flex items-center gap-3 text-red-600">
+                                        <AlertTriangle size={24} className="animate-pulse" />
+                                        <span className="uppercase font-bold tracking-wide">Peringatan: SIP Kadaluarsa / Hampir Habis!</span>
+                                    </div>
+                                ), expiredSipStaff)} className="text-xs font-bold bg-red-100 text-red-700 px-3 py-1.5 rounded mt-2 hover:bg-red-200 transition">
+                                    Lihat Detail
+                                </button>
+                            </div>
                         </div>
                     )}
+
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                        <WidgetCard title="Dokter" count={getCount(JOB_CATEGORIES.MEDIS)} icon={Stethoscope} colorClass="text-[#17B8A5]" borderColorClass="border-[#17B8A5]" />
-                        <WidgetCard title="Perawat" count={getCount(JOB_CATEGORIES.KEPERAWATAN)} icon={Users} colorClass="text-pink-500" borderColorClass="border-pink-500" />
-                        <WidgetCard title="Penunjang" count={getCount(JOB_CATEGORIES.PENUNJANG)} icon={Activity} colorClass="text-purple-500" borderColorClass="border-purple-500" />
-                        <WidgetCard title="Non-Medis" count={getCount(JOB_CATEGORIES.NON_MEDIS)} icon={Shield} colorClass="text-gray-600" borderColorClass="border-gray-600" />
+                        <WidgetCard title="Dokter" count={getStaffByCategory(JOB_CATEGORIES.MEDIS).length} icon={Stethoscope} colorClass="text-[#17B8A5]" borderColorClass="border-[#17B8A5]" onClick={() => openListModal('Daftar Dokter', getStaffByCategory(JOB_CATEGORIES.MEDIS))} />
+                        <WidgetCard title="Perawat & Bidan" count={getStaffByCategory(JOB_CATEGORIES.KEPERAWATAN).length} icon={Users} colorClass="text-pink-500" borderColorClass="border-pink-500" onClick={() => openListModal('Daftar Perawat & Bidan', getStaffByCategory(JOB_CATEGORIES.KEPERAWATAN))} />
+                        <WidgetCard title="Penunjang Medis" count={getStaffByCategory(JOB_CATEGORIES.PENUNJANG).length} icon={Activity} colorClass="text-purple-500" borderColorClass="border-purple-500" onClick={() => openListModal('Daftar Penunjang Medis', getStaffByCategory(JOB_CATEGORIES.PENUNJANG))} />
+                        <WidgetCard title="Non-Medis" count={getStaffByCategory(JOB_CATEGORIES.NON_MEDIS).length} icon={Shield} colorClass="text-gray-600" borderColorClass="border-gray-600" onClick={() => openListModal('Daftar Non-Medis', getStaffByCategory(JOB_CATEGORIES.NON_MEDIS))} />
                     </div>
+
+                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden border border-gray-200 dark:border-gray-700">
+                        <div className="p-5 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-900">
+                            <h3 className="font-bold text-gray-800 dark:text-white flex items-center gap-2">Data Kepegawaian Terbaru</h3>
+                        </div>
+                        <div className="p-5 overflow-x-auto">
+                           <table className="w-full text-sm text-left">
+                                <thead className="bg-gray-50 dark:bg-gray-700 font-bold dark:text-gray-200">
+                                    <tr><th className="p-4">Nama</th><th className="p-4">Profesi</th><th className="p-4">Unit</th></tr>
+                                </thead>
+                                <tbody className="dark:text-gray-200">
+                                    {staffData.slice(0, 5).map(s => (
+                                        <tr key={s.id} className="border-b dark:border-gray-700">
+                                            <td className="p-4 font-bold">{s.name}</td>
+                                            <td className="p-4">{s.category}</td>
+                                            <td className="p-4">{s.unit}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <Modal isOpen={modalData.isOpen} onClose={() => setModalData({...modalData, isOpen: false})} title={modalData.title}>
+                        <div className="overflow-x-auto"><table className="w-full text-sm text-left"><thead className="bg-gray-50 dark:bg-gray-700 font-bold dark:text-gray-200"><tr><th className="p-4">Nama</th><th className="p-4">Unit</th><th className="p-4">Jabatan</th></tr></thead><tbody className="dark:text-gray-200">{modalData.list.map(s => <tr key={s.id} className="border-b dark:border-gray-700"><td className="p-4 font-bold">{s.name}</td><td className="p-4">{s.unit}</td><td className="p-4">{s.role}</td></tr>)}</tbody></table></div>
+                    </Modal>
                 </div>
             );
         };
 
-        const StaffDirectory = ({ staffData, onDelete, onUpdate }) => {
-            const [search, setSearch] = useState('');
-            const [editingStaff, setEditingStaff] = useState(null);
+        const StaffForm = ({ staffToEdit, onComplete, onCancel, token }) => {
+            const isEdit = !!staffToEdit;
+            const [isLoading, setIsLoading] = useState(false);
+            const [availableUnits, setAvailableUnits] = useState(UNIT_MAPPING['Dokter Umum'] || []);
+            const [sipFile, setSipFile] = useState(null);
             
-            // Filter logic
-            const filteredData = staffData.filter(s => 
-                s.name.toLowerCase().includes(search.toLowerCase()) || 
-                s.unit.toLowerCase().includes(search.toLowerCase())
-            );
-
-            return (
-                <div className="space-y-6 animate-fade-in">
-                    <div className="flex justify-between items-center">
-                        <h2 className="text-2xl font-bold dark:text-white">Direktori Pegawai</h2>
-                        <div className="relative"><Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} /><input type="text" placeholder="Cari Nama / Unit..." className="pl-10 pr-4 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700 dark:text-white focus:outline-none focus:border-[#17B8A5]" value={search} onChange={(e) => setSearch(e.target.value)}/></div>
-                    </div>
-                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-                        <table className="w-full text-left">
-                            <thead className="bg-gray-50 dark:bg-gray-700 border-b dark:border-gray-600 text-gray-500 dark:text-gray-400 font-bold text-xs uppercase"><tr><th className="px-6 py-4">Nama</th><th className="px-6 py-4">Unit</th><th className="px-6 py-4">Jabatan</th><th className="px-6 py-4 text-right">Aksi</th></tr></thead>
-                            <tbody className="divide-y divide-gray-100 dark:divide-gray-700 dark:text-gray-200">{filteredData.map(s => (
-                                <tr key={s.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                                    <td className="px-6 py-4 font-bold">{s.name}</td>
-                                    <td className="px-6 py-4 text-sm">{s.unit}</td>
-                                    <td className="px-6 py-4 text-sm">{s.role}</td>
-                                    <td className="px-6 py-4 text-right flex justify-end gap-2">
-                                        <button onClick={() => onDelete(s.id)} className="text-red-500 hover:bg-red-50 p-2 rounded"><Trash2 size={16}/></button>
-                                    </td>
-                                </tr>
-                            ))}</tbody>
-                        </table>
-                    </div>
-                </div>
-            );
-        };
-
-        const StaffForm = ({ onAddStaff, showToast }) => {
+            // Set Default employeeType to 'Pegawai Tetap' (one of the new valid options)
             const [formData, setFormData] = useState({ 
-                employeeId: '', name: '', role: '', unit: '', category: 'Dokter Umum', employeeType: 'Tetap', 
-                sipNumber: '', sipExpiry: '', gender: 'Laki-laki', birthPlace: '', birthDate: '', phone: '', email: '', address: '', joinDate: new Date().toISOString().split('T')[0]
+                employeeId: '', name: '', role: '', unit: '', category: 'Dokter Umum', employeeType: 'Pegawai Tetap', 
+                sipNumber: '', sipExpiry: '', gender: 'Laki-laki', 
+                birthPlace: '', birthDate: '', phone: '', email: '', address: ''
             });
-            
+
+            useEffect(() => {
+                if (staffToEdit) {
+                    const catString = staffToEdit.category || 'Dokter Umum';
+                    const unitList = UNIT_MAPPING[catString] || [];
+                    setAvailableUnits(unitList);
+                    setFormData({
+                        id: staffToEdit.id,
+                        employeeId: staffToEdit.employeeId,
+                        name: staffToEdit.name,
+                        role: staffToEdit.role,
+                        unit: staffToEdit.unit,
+                        category: catString,
+                        employeeType: staffToEdit.status || 'Pegawai Tetap', // Map back from display string
+                        sipNumber: staffToEdit.sipNumber || '',
+                        sipExpiry: staffToEdit.sipExpiry || '', // Ambil expiry dari data
+                        gender: staffToEdit.gender,
+                        birthPlace: '', 
+                        birthDate: '',
+                        phone: staffToEdit.phone,
+                        email: staffToEdit.email,
+                        address: staffToEdit.address
+                    });
+                }
+            }, [staffToEdit]);
+
+            const handleChange = (e) => { 
+                const { name, value } = e.target; 
+                if (name === 'category') { 
+                    const newUnits = UNIT_MAPPING[value] || []; 
+                    setAvailableUnits(newUnits); 
+                    setFormData(prev => ({ ...prev, [name]: value, unit: newUnits[0] || '' })); 
+                } else { 
+                    setFormData(prev => ({ ...prev, [name]: value })); 
+                } 
+            };
+
+            const handleFileChange = (e) => {
+                if(e.target.files[0]) setSipFile(e.target.files[0]);
+            };
+
             const handleSubmit = async (e) => {
                 e.preventDefault();
+                setIsLoading(true);
+
+                const data = {
+                    id: formData.id,
+                    namaLkG: formData.name,
+                    nip: formData.employeeId,
+                    jenisKelamin: MAPPING.GENDER[formData.gender] || 'LAKI_LAKI',
+                    alamat: formData.address,
+                    noTelp: formData.phone,
+                    email: formData.email,
+                    kategoriProfesi: MAPPING.PROFESI_TO_ENUM[formData.category],
+                    kategoriUnitKerja: MAPPING.UNIT_TO_ENUM[formData.unit],
+                    jabatanSpesifik: formData.role,
+                    // Use MAPPING.STATUS to convert selected label (e.g. "Magang") to backend enum (e.g. "KONTRAK")
+                    statusKepegawaian: MAPPING.STATUS[formData.employeeType],
+                    peran: getPeranFromCategory(MAPPING.PROFESI_TO_ENUM[formData.category]),
+                    tanggalKadaluwarsaSIP: formData.sipExpiry, 
+                    sip: sipFile
+                }
+
+                const endpoint = isEdit ? '/api/staff/' : '/api/staff/';
+                const method = isEdit ? 'PUT' : 'POST';
+
                 try {
-                    const res = await fetch(`${API_URL}/staff`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(formData)
+                    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+                        method: method,
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(data)
                     });
-                    const data = await res.json();
-                    if (res.ok) {
-                        onAddStaff(data);
-                        showToast('Data berhasil disimpan!', 'success');
-                    } else {
-                        showToast('Gagal menyimpan data.', 'error');
-                    }
-                } catch(err) {
-                    showToast('Error koneksi server.', 'error');
+
+                    const result = await response.json();
+
+                    if (!response.ok) throw new Error(getFriendlyError(result.pesanError) || "Gagal menyimpan data");
+
+                    alert("Data berhasil disimpan!");
+                    onComplete();
+                } catch (err) {
+                    alert(err.message);
+                } finally {
+                    setIsLoading(false);
                 }
             };
 
-            const handleChange = (e) => setFormData({...formData, [e.target.name]: e.target.value});
-
             return (
-                <div className="space-y-6 animate-fade-in max-w-4xl mx-auto">
-                    <h2 className="text-2xl font-bold dark:text-white">Input Data SDM</h2>
-                    <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div><label className="text-xs font-bold text-gray-500 uppercase">Nama Lengkap</label><input required name="name" value={formData.name} onChange={handleChange} className="w-full mt-1 px-4 py-2 border rounded-lg dark:bg-gray-700 dark:text-white"/></div>
-                        <div><label className="text-xs font-bold text-gray-500 uppercase">ID Pegawai</label><input required name="employeeId" value={formData.employeeId} onChange={handleChange} className="w-full mt-1 px-4 py-2 border rounded-lg dark:bg-gray-700 dark:text-white"/></div>
-                        <div><label className="text-xs font-bold text-gray-500 uppercase">Unit</label><input required name="unit" value={formData.unit} onChange={handleChange} className="w-full mt-1 px-4 py-2 border rounded-lg dark:bg-gray-700 dark:text-white"/></div>
-                        <div><label className="text-xs font-bold text-gray-500 uppercase">Jabatan</label><input required name="role" value={formData.role} onChange={handleChange} className="w-full mt-1 px-4 py-2 border rounded-lg dark:bg-gray-700 dark:text-white"/></div>
-                        <div className="md:col-span-2"><button type="submit" className="w-full bg-[#17B8A5] text-white font-bold py-3 rounded-lg hover:bg-[#0F8F80]">Simpan Data</button></div>
+                <div className="space-y-6 animate-fade-in max-w-5xl mx-auto pb-10">
+                    <div className="flex justify-between items-center">
+                        <h2 className="text-2xl font-bold text-[#2C2C2C] dark:text-white">{isEdit ? 'Edit Data SDM' : 'Input Data SDM Baru'}</h2>
+                        {isEdit && <button onClick={onCancel} className="text-gray-500 hover:text-gray-700">Batal</button>}
+                    </div>
+
+                    <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div className="space-y-4">
+                            <h3 className="font-bold border-b pb-2 dark:text-white">Data Pribadi</h3>
+                            <div><label className="text-xs font-bold uppercase dark:text-gray-400">NIP</label><input required name="employeeId" value={formData.employeeId} onChange={handleChange} className="w-full mt-1 px-4 py-2 border rounded-lg dark:bg-gray-700 dark:text-white" /></div>
+                            <div><label className="text-xs font-bold uppercase dark:text-gray-400">Nama Lengkap</label><input required name="name" value={formData.name} onChange={handleChange} className="w-full mt-1 px-4 py-2 border rounded-lg dark:bg-gray-700 dark:text-white" /></div>
+                             <div>
+                                <label className="text-xs font-bold uppercase dark:text-gray-400">Jenis Kelamin</label>
+                                <select name="gender" value={formData.gender} onChange={handleChange} className="w-full mt-1 px-4 py-2 border rounded-lg dark:bg-gray-700 dark:text-white">
+                                    <option value="Laki-laki">Laki-laki</option>
+                                    <option value="Perempuan">Perempuan</option>
+                                </select>
+                            </div>
+                            <div><label className="text-xs font-bold uppercase dark:text-gray-400">Email</label><input type="email" name="email" value={formData.email} onChange={handleChange} className="w-full mt-1 px-4 py-2 border rounded-lg dark:bg-gray-700 dark:text-white" /></div>
+                            <div><label className="text-xs font-bold uppercase dark:text-gray-400">No. Telepon</label><input name="phone" value={formData.phone} onChange={handleChange} className="w-full mt-1 px-4 py-2 border rounded-lg dark:bg-gray-700 dark:text-white" /></div>
+                            <div><label className="text-xs font-bold uppercase dark:text-gray-400">Alamat</label><textarea name="address" value={formData.address} onChange={handleChange} className="w-full mt-1 px-4 py-2 border rounded-lg dark:bg-gray-700 dark:text-white"></textarea></div>
+                        </div>
+
+                        <div className="space-y-4">
+                            <h3 className="font-bold border-b pb-2 dark:text-white">Data Kepegawaian</h3>
+                            <div><label className="text-xs font-bold uppercase dark:text-gray-400">Jabatan Spesifik</label><input required name="role" value={formData.role} onChange={handleChange} className="w-full mt-1 px-4 py-2 border rounded-lg dark:bg-gray-700 dark:text-white" /></div>
+                            <div>
+                                <label className="text-xs font-bold uppercase dark:text-gray-400">Profesi</label>
+                                <select name="category" value={formData.category} onChange={handleChange} className="w-full mt-1 px-4 py-2 border rounded-lg dark:bg-gray-700 dark:text-white">
+                                    <optgroup label="Medis">{JOB_CATEGORIES.MEDIS.map(c => <option key={c} value={c}>{c}</option>)}</optgroup>
+                                    <optgroup label="Keperawatan">{JOB_CATEGORIES.KEPERAWATAN.map(c => <option key={c} value={c}>{c}</option>)}</optgroup>
+                                    <optgroup label="Penunjang">{JOB_CATEGORIES.PENUNJANG.map(c => <option key={c} value={c}>{c}</option>)}</optgroup>
+                                    <optgroup label="Non-Medis">{JOB_CATEGORIES.NON_MEDIS.map(c => <option key={c} value={c}>{c}</option>)}</optgroup>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="text-xs font-bold uppercase dark:text-gray-400">Unit Kerja</label>
+                                <select name="unit" value={formData.unit} onChange={handleChange} className="w-full mt-1 px-4 py-2 border rounded-lg dark:bg-gray-700 dark:text-white">
+                                    {availableUnits.map((u,i) => <option key={i} value={u}>{u}</option>)}
+                                </select>
+                            </div>
+                            
+                            {/* STATUS DROPDOWN UPDATE */}
+                            <div>
+                                <label className="text-xs font-bold uppercase dark:text-gray-400">Status</label>
+                                <select name="employeeType" value={formData.employeeType} onChange={handleChange} className="w-full mt-1 px-4 py-2 border rounded-lg dark:bg-gray-700 dark:text-white">
+                                    <option value="Pegawai Tetap">Pegawai Tetap</option>
+                                    <option value="Kontrak">Kontrak</option>
+                                    <option value="Mitra (Dokter Tamu)">Mitra (Dokter Tamu)</option>
+                                    <option value="Magang (Internship)">Magang (Internship)</option>
+                                    <option value="PPDS">PPDS</option>
+                                </select>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="text-xs font-bold uppercase dark:text-gray-400">Tanggal Kadaluarsa SIP</label>
+                                    <input type="date" name="sipExpiry" value={formData.sipExpiry} onChange={handleChange} className="w-full mt-1 px-4 py-2 border rounded-lg dark:bg-gray-700 dark:text-white" />
+                                </div>
+                                <div>
+                                    <label className="text-xs font-bold uppercase dark:text-gray-400">Upload SIP (Gambar)</label>
+                                    <input type="file" accept="image/*" onChange={handleFileChange} className="w-full mt-1 px-4 py-1.5 border rounded-lg dark:bg-gray-700 dark:text-white text-sm" />
+                                </div>
+                            </div>
+                            <p className="text-xs text-gray-400">Kosongkan file jika tidak ada perubahan.</p>
+
+                            <button type="submit" disabled={isLoading} className="w-full px-6 py-3 mt-6 rounded-xl text-white font-bold bg-[#17B8A5] hover:bg-[#0F8F80] shadow-lg flex items-center justify-center gap-2">
+                                {isLoading ? 'Menyimpan...' : <><Save size={20}/> Simpan Data</>}
+                            </button>
+                        </div>
                     </form>
                 </div>
             );
         };
 
-        const PerformanceModule = ({ staffData }) => {
-            const [kinerjaData, setKinerjaData] = useState([]);
-            
-            // Explicitly fetch from /api/kinerjaStaff/ as requested
+        const StaffDirectory = ({ staffData, onRefresh, onEdit, token }) => {
+            const [filter, setFilter] = useState('All');
+            const [search, setSearch] = useState('');
+            const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+            const [selectedIdToDelete, setSelectedIdToDelete] = useState(null);
+            const [isDeleting, setIsDeleting] = useState(false);
+
+            const filteredData = staffData.filter(staff => (filter === 'All' || staff.category === filter) && (staff.name.toLowerCase().includes(search.toLowerCase()) || staff.unit.toLowerCase().includes(search.toLowerCase())));
+
+            const confirmDelete = (id) => {
+                setSelectedIdToDelete(id);
+                setIsDeleteModalOpen(true);
+            };
+
+            const handleDelete = async () => {
+                if (!selectedIdToDelete) return; 
+                if (!token) {
+                    alert("Sesi kadaluarsa. Silakan login ulang.");
+                    return;
+                }
+                
+                setIsDeleting(true);
+                try {
+                    const response = await fetch(`${API_BASE_URL}/api/staff/`, {
+                        method: 'DELETE',
+                        headers: { 
+                            'x-auth-token': token,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ id: selectedIdToDelete })
+                    });
+
+                    if (response.ok) {
+                        alert("Data berhasil dihapus.");
+                        setIsDeleteModalOpen(false);
+                        onRefresh(); 
+                    } else {
+                        const res = await response.json();
+                        alert("Gagal menghapus: " + (res.pesanError || "Terjadi kesalahan"));
+                    }
+                } catch (error) {
+                    console.error("Error deleting:", error);
+                    alert("Gagal menghapus data. Periksa koneksi internet.");
+                } finally {
+                    setIsDeleting(false);
+                    setSelectedIdToDelete(null);
+                }
+            };
+
+            return (
+                <div className="space-y-6">
+                    {/* WRAPPER KONTEN UTAMA (Yang menggunakan animasi) */}
+                    <div className="space-y-6 animate-fade-in">
+                        <div className="flex flex-col md:flex-row justify-between gap-4 items-end md:items-center">
+                            <div><h2 className="text-2xl font-bold dark:text-white">Direktori & Shift</h2><p className="text-sm text-gray-500 dark:text-gray-400">Kelola data pegawai dan jadwal shift.</p></div>
+                            <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+                                 <button onClick={onRefresh} className="px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg text-sm font-bold hover:bg-gray-200 dark:hover:bg-gray-600 transition">Refresh Data</button>
+                                <div className="relative flex-1"><Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} /><input type="text" placeholder="Cari Nama / Unit..." className="w-full pl-10 pr-4 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700 dark:text-white focus:outline-none focus:border-[#17B8A5]" value={search} onChange={(e) => setSearch(e.target.value)}/></div>
+                                <div className="relative"><Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} /><select className="pl-10 pr-8 py-2 border rounded-lg appearance-none dark:bg-gray-800 dark:border-gray-700 dark:text-white focus:outline-none focus:border-[#17B8A5]" value={filter} onChange={(e) => setFilter(e.target.value)}><option value="All">Semua Profesi</option>{Object.keys(JOB_CATEGORIES).map(k => JOB_CATEGORIES[k].map(c => <option key={c} value={c}>{c}</option>))}</select><ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" size={14} /></div>
+                            </div>
+                        </div>
+
+                        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-visible border border-gray-200 dark:border-gray-700 min-h-[400px]">
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left">
+                                    <thead className="bg-gray-50 dark:bg-gray-700 border-b dark:border-gray-600 dark:text-gray-200"><tr><th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase w-32">NIP</th><th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Nama & Profesi</th><th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Jabatan & Unit</th><th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Shift</th><th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase text-right">Aksi</th></tr></thead>
+                                    <tbody className="divide-y divide-gray-100 dark:divide-gray-700 dark:text-gray-200">{filteredData.map((staff) => {
+                                        let avatarColor = staff.category.includes('Dokter') ? 'bg-[#17B8A5]' : staff.category.includes('Perawat') ? 'bg-blue-400' : 'bg-gray-400';
+                                        return (
+                                            <tr key={staff.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer group">
+                                                <td className="px-6 py-4 align-top"><span className="font-mono text-xs font-bold text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-600 px-2 py-1 rounded">{staff.employeeId}</span></td>
+                                                <td className="px-6 py-4"><div className="flex items-center gap-3"><div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-sm ${avatarColor}`}>{staff.name.substring(0,2).toUpperCase()}</div><div><p className="font-bold text-gray-800 dark:text-gray-200 text-sm">{staff.name}</p><p className="text-xs text-gray-400">{staff.category}</p></div></div></td>
+                                                <td className="px-6 py-4 align-middle"><p className="text-sm font-bold text-gray-700 dark:text-gray-300">{staff.role}</p><p className="text-xs text-gray-500 dark:text-gray-400">{staff.unit}</p></td>
+                                                {/* KOLOM SHIFT */}
+                                                <td className="px-6 py-4 align-middle"><span className="px-2 py-1 bg-blue-50 text-blue-600 rounded text-xs font-bold border border-blue-200">Pagi (07:00-14:00)</span></td>
+                                                <td className="px-6 py-4 text-right align-middle">
+                                                    <div className="flex justify-end gap-2">
+                                                        <button onClick={() => onEdit(staff)} className="px-3 py-1 bg-blue-50 text-blue-600 rounded text-xs font-bold border border-blue-200 hover:bg-blue-100 flex items-center gap-1"><Edit size={14}/> Edit</button>
+                                                        {/* TOMBOL HAPUS DENGAN STOP PROPAGATION */}
+                                                        <button onClick={(e) => { e.stopPropagation(); confirmDelete(staff.id); }} className="px-3 py-1 bg-red-50 text-red-600 rounded text-xs font-bold border border-red-200 hover:bg-red-100 flex items-center gap-1"><Trash2 size={14}/> Hapus</button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        )
+                                    })}</tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {/* MODAL DI LUAR WRAPPER ANIMASI AGAR POSISI FIXED TIDAK RUSAK */}
+                    {isDeleteModalOpen && (
+                        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fade-in">
+                            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-md p-6 border border-gray-100 dark:border-gray-700">
+                                <div className="text-center">
+                                    <div className="w-16 h-16 bg-red-100 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                                        <AlertTriangle size={32} />
+                                    </div>
+                                    <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-2">Konfirmasi Hapus</h3>
+                                    <p className="text-gray-500 dark:text-gray-400 mb-6">
+                                        Apakah Anda yakin ingin menghapus data pegawai ini? Tindakan ini tidak dapat dibatalkan.
+                                    </p>
+                                    
+                                    <div className="flex gap-3 justify-center">
+                                        <button 
+                                            type="button"
+                                            onClick={() => setIsDeleteModalOpen(false)}
+                                            className="px-5 py-2.5 rounded-xl border border-gray-300 text-gray-700 hover:bg-gray-50 font-bold transition dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700"
+                                            disabled={isDeleting}
+                                        >
+                                            Batal
+                                        </button>
+                                        <button 
+                                            type="button"
+                                            onClick={handleDelete}
+                                            className="px-5 py-2.5 rounded-xl bg-red-600 text-white font-bold hover:bg-red-700 shadow-lg shadow-red-500/30 transition flex items-center gap-2"
+                                            disabled={isDeleting}
+                                        >
+                                            {isDeleting ? 'Menghapus...' : <><Trash2 size={18}/> Ya, Hapus</>}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const PerformanceModule = ({ token }) => {
+            const [localData, setLocalData] = useState([]);
+            const [loading, setLoading] = useState(true);
+            const [selectedId, setSelectedId] = useState(null);
+
             useEffect(() => {
-                fetch(`${API_URL}/kinerjaStaff`)
-                    .then(res => res.json())
-                    .then(data => setKinerjaData(data))
-                    .catch(err => console.error(err));
-            }, [staffData]); // Reload if staff changes
+                const fetchData = async () => {
+                    if (!token) return;
+                    try {
+                        setLoading(true);
+                        const response = await fetch(`${API_BASE_URL}/api/kinerjastaff/`, {
+                            headers: { 'x-auth-token': token }
+                        });
+                        const result = await response.json();
+                        const rawList = result.staffList || [];
+                        
+                        const transformed = rawList.map(item => ({
+                            id: item.id,
+                            name: item.namaLkG,
+                            unit: ENUM_TO_UNIT[item.kategoriUnitKerja] || item.kategoriUnitKerja,
+                            role: item.jabatanSpesifik,
+                            kinerjaStaff: item.kinerjaStaff || {}
+                        }));
+
+                        setLocalData(transformed);
+                        if (transformed.length > 0) {
+                            setSelectedId(transformed[0].id);
+                        }
+                    } catch (error) {
+                        console.error("Error fetching performance data:", error);
+                    } finally {
+                        setLoading(false);
+                    }
+                };
+
+                fetchData();
+            }, [token]);
+
+            const staff = localData.find(s => s.id === parseInt(selectedId));
+            const kinerja = staff?.kinerjaStaff || {};
+            const diklatList = kinerja.diklat || [];
+
+            if (loading) {
+                return (
+                    <div className="h-96 flex items-center justify-center flex-col gap-3 animate-fade-in">
+                        <div className="w-10 h-10 border-4 border-[#17B8A5] border-t-transparent rounded-full animate-spin"></div>
+                        <p className="text-gray-500 dark:text-gray-400 font-medium">Mengambil data kinerja...</p>
+                    </div>
+                );
+            }
 
             return (
                 <div className="space-y-6 animate-fade-in">
-                    <h2 className="text-2xl font-bold dark:text-white">Evaluasi Kinerja</h2>
-                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-                        {kinerjaData.length === 0 ? <p className="text-gray-500">Belum ada data kinerja.</p> : (
-                            <ul className="space-y-3">
-                                {kinerjaData.map(k => (
-                                    <li key={k.id} className="p-4 border rounded-lg flex justify-between items-center dark:border-gray-700">
-                                        <div><p className="font-bold dark:text-white">{k.name}</p><p className="text-xs text-gray-500">{k.role}</p></div>
-                                        <span className="bg-green-100 text-green-800 text-xs font-bold px-2 py-1 rounded">Aktif</span>
-                                    </li>
+                    <h2 className="text-2xl font-bold text-[#2C2C2C] dark:text-white">Evaluasi Kinerja</h2>
+                    <div className="flex flex-col md:flex-row gap-6 h-[calc(100vh-200px)]">
+                        {/* Sidebar List Staff */}
+                        <div className="w-full md:w-1/4 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col h-full">
+                            <div className="flex-1 overflow-y-auto p-2 space-y-1">
+                                {localData.map(s => (
+                                    <button key={s.id} onClick={() => setSelectedId(s.id)} className={`w-full text-left p-3 rounded-lg text-sm transition-all duration-200 ${selectedId === s.id ? 'bg-[#17B8A5] text-white shadow-md' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'}`}>
+                                        <div className="font-bold">{s.name}</div>
+                                        <div className={`text-xs ${selectedId === s.id ? 'text-white/80' : 'text-gray-500 dark:text-gray-400'}`}>{s.unit}</div>
+                                    </button>
                                 ))}
-                            </ul>
-                        )}
+                            </div>
+                        </div>
+
+                        {/* Detail Content */}
+                        <div className="w-full md:w-3/4 flex flex-col h-full bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700 overflow-y-auto">
+                             {staff ? (
+                                <div className="space-y-8 animate-fade-in">
+                                    <div className="flex justify-between items-center border-b border-gray-100 dark:border-gray-700 pb-4">
+                                        <div>
+                                            <h3 className="text-xl font-bold dark:text-white">{staff.name}</h3>
+                                            <p className="text-sm text-gray-500">{staff.role} - {staff.unit}</p>
+                                        </div>
+                                        <div className="text-right">
+                                            <span className={`px-3 py-1 rounded-full text-xs font-bold ${kinerja.skpPredikat === 'Baik' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
+                                                {kinerja.skpPredikat || 'Belum Dinilai'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    
+                                    {/* Indikator Mutu */}
+                                    <div>
+                                        <h4 className="font-bold text-gray-800 dark:text-white mb-4 flex items-center gap-2"><Target size={18}/> Indikator Mutu Unit</h4>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-xl border border-gray-100 dark:border-gray-600">
+                                                <p className="text-xs font-bold uppercase text-gray-500 dark:text-gray-300 mb-3">Waktu Tanggap (Response Time)</p>
+                                                <div className="flex justify-between items-end mb-2">
+                                                    <span className="text-sm text-gray-600 dark:text-gray-400">Target</span>
+                                                    <span className="font-bold dark:text-white">{kinerja.targetTimePasienBaru || '-'}</span>
+                                                </div>
+                                                <div className="flex justify-between items-end mb-2">
+                                                    <span className="text-sm text-gray-600 dark:text-gray-400">Realisasi</span>
+                                                    <span className="font-bold text-[#17B8A5] text-lg">{kinerja.realisasiTimePasienBaru || '-'}</span>
+                                                </div>
+                                                <div className="w-full bg-gray-200 rounded-full h-1.5 dark:bg-gray-600 mt-2">
+                                                    <div className="bg-[#17B8A5] h-1.5 rounded-full" style={{width: kinerja.capaianTimePasienBaru || '0%'}}></div>
+                                                </div>
+                                                <p className="text-right text-xs text-[#17B8A5] mt-1 font-bold">{kinerja.capaianTimePasienBaru || '0%'} Tercapai</p>
+                                            </div>
+
+                                             <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-xl border border-gray-100 dark:border-gray-600">
+                                                <p className="text-xs font-bold uppercase text-gray-500 dark:text-gray-300 mb-3">Kepuasan Pasien</p>
+                                                <div className="flex justify-between items-end mb-2">
+                                                    <span className="text-sm text-gray-600 dark:text-gray-400">Target</span>
+                                                    <span className="font-bold dark:text-white">{kinerja.targetKepuasanPasien || '-'}</span>
+                                                </div>
+                                                <div className="flex justify-between items-end mb-2">
+                                                    <span className="text-sm text-gray-600 dark:text-gray-400">Realisasi</span>
+                                                    <span className="font-bold text-[#17B8A5] text-lg">{kinerja.realisasiKepuasanPasien || '-'}</span>
+                                                </div>
+                                                <div className="w-full bg-gray-200 rounded-full h-1.5 dark:bg-gray-600 mt-2">
+                                                    <div className="bg-[#17B8A5] h-1.5 rounded-full" style={{width: '100%'}}></div> 
+                                                </div>
+                                                <p className="text-right text-xs text-[#17B8A5] mt-1 font-bold">{kinerja.capaianKepuasanPasien || '0%'} Tercapai</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Perilaku & SKP */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div>
+                                            <h4 className="font-bold text-gray-800 dark:text-white mb-3 flex items-center gap-2"><UserCheck size={18}/> Perilaku Kerja</h4>
+                                            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
+                                                <div className="flex justify-between p-3 border-b border-gray-100 dark:border-gray-700">
+                                                    <span className="text-sm text-gray-600 dark:text-gray-300">Integritas</span>
+                                                    <span className="font-bold text-gray-800 dark:text-white">{kinerja.integritas || '-'}</span>
+                                                </div>
+                                                <div className="flex justify-between p-3">
+                                                    <span className="text-sm text-gray-600 dark:text-gray-300">Disiplin</span>
+                                                    <span className="font-bold text-gray-800 dark:text-white">{kinerja.disiplin || '-'}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <h4 className="font-bold text-gray-800 dark:text-white mb-3 flex items-center gap-2"><FileBarChart size={18}/> Sasaran Kinerja Pegawai (SKP)</h4>
+                                            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden p-3 space-y-2">
+                                                <div className="flex justify-between">
+                                                    <span className="text-sm text-gray-600 dark:text-gray-300">Nilai TKP</span>
+                                                    <span className="font-bold text-gray-800 dark:text-white">{kinerja.skpTKP || '-'}</span>
+                                                </div>
+                                                <div className="flex justify-between">
+                                                    <span className="text-sm text-gray-600 dark:text-gray-300">Realisasi SKP</span>
+                                                    <span className="font-bold text-gray-800 dark:text-white">{kinerja.skpRealisasi || '-'}</span>
+                                                </div>
+                                                <div className="mt-2 pt-2 border-t border-gray-100 dark:border-gray-700 flex justify-between items-center">
+                                                    <span className="text-xs font-bold uppercase text-gray-500">Predikat Akhir</span>
+                                                    <span className="px-3 py-1 bg-blue-50 text-blue-600 rounded-lg text-sm font-bold">{kinerja.skpPredikat || '-'}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Riwayat Diklat */}
+                                    <div>
+                                        <h4 className="font-bold text-gray-800 dark:text-white mb-3 flex items-center gap-2"><GraduationCap size={18}/> Riwayat Pengembangan Kompetensi (Diklat)</h4>
+                                        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
+                                            <table className="w-full text-sm text-left">
+                                                <thead className="bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-300 font-bold border-b border-gray-200 dark:border-gray-600">
+                                                    <tr>
+                                                        <th className="p-3">Nama Kegiatan</th>
+                                                        <th className="p-3">Tanggal</th>
+                                                        <th className="p-3">Jenis</th>
+                                                        <th className="p-3 text-right">Durasi</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                                                    {diklatList.length > 0 ? (
+                                                        diklatList.map((d, idx) => (
+                                                            <tr key={idx} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                                                                <td className="p-3 font-medium text-gray-800 dark:text-white">{d.namaKegiatan}</td>
+                                                                <td className="p-3 text-gray-600 dark:text-gray-300">{d.tanggal}</td>
+                                                                <td className="p-3"><span className="px-2 py-0.5 rounded text-xs bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-300 font-bold">{d.jenis}</span></td>
+                                                                <td className="p-3 text-gray-600 dark:text-gray-300 text-right">{d.durasi}</td>
+                                                            </tr>
+                                                        ))
+                                                    ) : (
+                                                        <tr>
+                                                            <td colSpan="4" className="p-4 text-center text-gray-400">Belum ada data diklat.</td>
+                                                        </tr>
+                                                    )}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                             ) : <div className="flex h-full items-center justify-center text-gray-400 flex-col gap-2"><User size={48} className="opacity-20"/><p>Pilih pegawai untuk melihat detail kinerja.</p></div>}
+                        </div>
                     </div>
                 </div>
             );
         };
 
-        // --- MAIN APP ---
+        const Sidebar = ({ activeTab, setActiveTab, onOpenSettings, user }) => (
+            <div className="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col h-screen fixed left-0 top-0 z-50 transition-colors">
+                <div className="h-16 flex items-center justify-center border-b border-gray-200 dark:border-gray-700"><h1 className="text-2xl font-bold text-[#17B8A5]">SIMRS<span className="text-gray-800 dark:text-white">HR</span></h1></div>
+                <nav className="p-4 space-y-2 flex-1">
+                    {[
+                        { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+                        { id: 'directory', icon: Users, label: 'Direktori & Shift' }, // NAMA DIUBAH
+                        { id: 'crud', icon: UserPlus, label: 'Input Data SDM' },
+                        { id: 'performance', icon: Activity, label: 'Evaluasi Kinerja' },
+                        { id: 'assistant', icon: Bot, label: 'Asisten HR' } 
+                    ].map(item => (
+                        <button key={item.id} onClick={() => setActiveTab(item.id)} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition ${activeTab === item.id ? 'bg-[#17B8A5] text-white shadow-md' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'}`}>
+                            <item.icon size={20}/> {item.label}
+                        </button>
+                    ))}
+                </nav>
+                <div onClick={onOpenSettings} className="p-4 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/30 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center font-bold text-gray-500 uppercase">
+                            {user?.name ? user.name.substring(0,2) : 'AD'}
+                        </div>
+                        <div className="overflow-hidden">
+                            <p className="text-sm font-bold text-gray-700 dark:text-gray-200 truncate">{user?.name || 'Admin HR'}</p>
+                            <p className="text-xs text-gray-400">Pengaturan Akun</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+
+        // --- MAIN APP COMPONENT ---
         const App = () => {
-            const [user, setUser] = useState(null);
             const [activeTab, setActiveTab] = useState('dashboard');
             const [staffData, setStaffData] = useState([]);
-            const [toast, setToast] = useState(null);
+            const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+            const [theme, setTheme] = useState('light');
+            const [user, setUser] = useState(null);
+            const [token, setToken] = useState(null); 
+            const [editingStaff, setEditingStaff] = useState(null); 
 
-            // Fetch Staff on Login
-            useEffect(() => {
-                if (user) {
-                    fetch(`${API_URL}/staff`)
-                        .then(res => res.json())
-                        .then(data => { if(Array.isArray(data)) setStaffData(data); })
-                        .catch(console.error);
-                }
-            }, [user]);
+            // Fetch Staff Data
+            const fetchStaffData = async (tokenOverride) => {
+                const authToken = tokenOverride || token;
+                if(!authToken) return;
 
-            const showToast = (msg, type) => setToast({ message: msg, type });
-
-            // DELETE handler
-            const handleDelete = async (id) => {
-                if(!confirm("Hapus data ini?")) return;
                 try {
-                    await fetch(`${API_URL}/staff/${id}`, { method: 'DELETE' });
-                    setStaffData(prev => prev.filter(s => s.id !== id));
-                    showToast('Data terhapus', 'success');
-                } catch(e) { showToast('Gagal menghapus', 'error'); }
+                    const response = await fetch(`${API_BASE_URL}/api/staff/`, {
+                        headers: { 'x-auth-token': authToken }
+                    });
+                    const result = await response.json();
+                    
+                    const rawData = result.staffList || []; 
+                    
+                    if(Array.isArray(rawData)) {
+                        const transformed = rawData
+                        .filter(item => !item.deletedAt)
+                        .map(item => ({
+                            id: item.id,
+                            employeeId: item.nip, 
+                            name: item.namaLkG,
+                            role: item.jabatanSpesifik,
+                            category: ENUM_TO_PROFESI[item.kategoriProfesi] || item.kategoriProfesi, 
+                            unit: ENUM_TO_UNIT[item.kategoriUnitKerja] || item.kategoriUnitKerja,
+                            // Map status ENUM back to frontend Display String
+                            status: MAPPING.STATUS[item.statusKepegawaian] || item.statusKepegawaian,
+                            email: item.email,
+                            phone: item.noTelp,
+                            address: item.alamat,
+                            gender: MAPPING.GENDER[item.jenisKelamin] || 'Laki-laki',
+                            sipUrl: item.sipUrl,
+                            // --- MAPPING TANGGAL KADALUARSA SIP DARI BACKEND ---
+                            sipExpiry: item.tanggalKadaluwarsaSIP || null,
+                            kinerjaStaff: item.kinerjaStaff || {}
+                        }));
+                        setStaffData(transformed);
+                    }
+                } catch (err) {
+                    console.error("Gagal mengambil data:", err);
+                }
             };
 
-            if (!user) return <AuthPage onLogin={setUser} />;
+            const handleLogin = (userData, userToken) => {
+                setUser(userData);
+                setToken(userToken);
+                fetchStaffData(userToken);
+            };
+
+            const handleLogout = () => {
+                setUser(null);
+                setToken(null);
+                setStaffData([]);
+                setIsSettingsOpen(false);
+            };
+
+            const handleThemeChange = (newTheme) => {
+                setTheme(newTheme);
+                if (newTheme === 'dark') document.documentElement.classList.add('dark');
+                else document.documentElement.classList.remove('dark');
+            };
+
+            const handleEditStart = (staff) => {
+                setEditingStaff(staff);
+                setActiveTab('crud');
+            };
+
+            if (!user || !token) {
+                return <AuthPage onLogin={handleLogin} />;
+            }
 
             return (
                 <div className="flex min-h-screen font-sans pl-64 bg-[#F7F7F7] dark:bg-gray-900 transition-colors">
-                    {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
-                    
-                    <div className="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col h-screen fixed left-0 top-0 z-50">
-                        <div className="h-16 flex items-center justify-center border-b border-gray-200 dark:border-gray-700"><h1 className="text-2xl font-bold text-[#17B8A5]">SIMRS<span className="text-gray-800 dark:text-white">HR</span></h1></div>
-                        <nav className="p-4 space-y-2 flex-1">
-                            {[{ id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' }, { id: 'directory', icon: Users, label: 'Direktori' }, { id: 'crud', icon: UserPlus, label: 'Input Data' }, { id: 'performance', icon: Activity, label: 'Kinerja' }].map(item => (
-                                <button key={item.id} onClick={() => setActiveTab(item.id)} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition ${activeTab === item.id ? 'bg-[#17B8A5] text-white shadow-md' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'}`}><item.icon size={20}/> {item.label}</button>
-                            ))}
-                        </nav>
-                        <div onClick={() => setUser(null)} className="p-4 border-t border-gray-100 cursor-pointer hover:bg-gray-50 flex items-center gap-3"><div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center font-bold text-gray-500">{user.name.substring(0,2)}</div><div className="text-sm font-bold text-gray-700">{user.name}</div><LogOut size={16} className="ml-auto text-red-400"/></div>
-                    </div>
-
+                    <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} onOpenSettings={() => setIsSettingsOpen(true)} user={user} />
                     <main className="flex-1 p-8 h-screen overflow-y-auto">
                         {activeTab === 'dashboard' && <Dashboard staffData={staffData} />}
-                        {activeTab === 'directory' && <StaffDirectory staffData={staffData} onDelete={handleDelete} />}
-                        {activeTab === 'crud' && <StaffForm onAddStaff={s => setStaffData([s, ...staffData])} showToast={showToast} />}
-                        {activeTab === 'performance' && <PerformanceModule staffData={staffData} />}
+                        
+                        {activeTab === 'directory' && <StaffDirectory staffData={staffData} token={token} onRefresh={() => fetchStaffData()} onEdit={handleEditStart} />}
+                        
+                        {activeTab === 'crud' && (
+                            <StaffForm 
+                                token={token} 
+                                staffToEdit={editingStaff}
+                                onComplete={() => {
+                                    fetchStaffData();
+                                    setEditingStaff(null);
+                                    setActiveTab('directory');
+                                }} 
+                                onCancel={() => {
+                                    setEditingStaff(null);
+                                    setActiveTab('directory');
+                                }}
+                            />
+                        )}
+                        {activeTab === 'performance' && <PerformanceModule token={token} />}
+                        {activeTab === 'assistant' && <SmartHRAssistant staffData={staffData} />}
                     </main>
+                    <UserSettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} currentTheme={theme} onThemeChange={handleThemeChange} user={user} onLogout={handleLogout} />
                 </div>
             );
         };
