@@ -78,9 +78,9 @@ export const addStaff = async (req: Request, res: Response) => {
     if (!req.body) {
         return res.status(400).json({ pesanError: "TIDAK_ADA_HEADER" });
     }
-    const { namaLkG, nip, jenisKelamin, alamat, noTelp, email, kategoriProfesi, kategoriUnitKerja, jabatanSpesifik, statusKepegawaian, peran, sip } = req.body;
+    const { namaLkG, nip, jenisKelamin, alamat, noTelp, email, kategoriProfesi, kategoriUnitKerja, jabatanSpesifik, peran, sip } = req.body;
     try {
-        if (!namaLkG || !nip || !jenisKelamin || !alamat || !noTelp ||  !email || !kategoriProfesi || !kategoriUnitKerja || !jabatanSpesifik || !statusKepegawaian || !peran) {
+        if (!namaLkG || !nip || !jenisKelamin || !alamat || !noTelp ||  !email || !kategoriProfesi || !kategoriUnitKerja || !jabatanSpesifik || !peran) {
             console.log(req.body)
             return res.status(400).json({ pesanError: "TIDAK_LENGKAP" });
         }
@@ -100,7 +100,7 @@ export const addStaff = async (req: Request, res: Response) => {
                 kategoriProfesi,
                 kategoriUnitKerja,
                 jabatanSpesifik,
-                statusKepegawaian,
+                statusKepegawaian: "PEGAWAI_TETAP",
                 peran,
                 sipUrl,
                 kinerjaStaff: {
