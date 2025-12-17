@@ -5,10 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SIMRS HR - Manajemen SDM Terpadu (Terintegrasi)</title>
     
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
+    <!-- Babel for JSX transformation -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
+    <!-- Add Noto Sans Font -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <script>
@@ -87,6 +90,7 @@
 <body class="bg-[#F7F7F7] text-[#2C2C2C] dark:bg-gray-900 dark:text-gray-100 transition-colors duration-300">
     <div id="root"></div>
 
+    <!-- React Application -->
     <script type="text/babel" data-type="module">
         import React, { useState, useEffect, useRef } from 'https://esm.sh/react@18.2.0';
         import { createRoot } from 'https://esm.sh/react-dom@18.2.0/client';
@@ -105,65 +109,111 @@
         // 1. KONFIGURASI API & MAPPING
         // ==========================================
         const API_BASE_URL = "https://staff-management-simrs-78e5d8a13f9a.herokuapp.com";
+        // const API_BASE_URL = "localhost:3000";
 
+        // --- ENUM MAPPINGS (Frontend String <-> Backend Enum) ---
         const MAPPING = {
             GENDER: {
-                'Laki-laki': 'LAKI_LAKI', 'Perempuan': 'PEREMPUAN',
-                'LAKI_LAKI': 'Laki-laki', 'PEREMPUAN': 'Perempuan'
+                'Laki-laki': 'LAKI_LAKI',
+                'Perempuan': 'PEREMPUAN',
+                'LAKI_LAKI': 'Laki-laki',
+                'PEREMPUAN': 'Perempuan'
             },
             ROLE: {
-                'MEDIS': 'Medis', 'NON_MEDIS': 'Non-Medis',
-                'PENUNJANG_MEDIS': 'Penunjang', 'PERAWAT_DAN_BIDAN': 'Keperawatan'
+                // Mapping sederhana Peran Backend -> Logic Frontend (General)
+                'MEDIS': 'Medis',
+                'NON_MEDIS': 'Non-Medis',
+                'PENUNJANG_MEDIS': 'Penunjang',
+                'PERAWAT_DAN_BIDAN': 'Keperawatan'
             },
             STATUS: {
-                'Tetap': 'PEGAWAI_TETAP', 'Kontrak': 'KONTRAK', 'Mitra': 'MITRA_DOKTER_TAMU',
-                'Residen': 'KONTRAK', 'Magang': 'KONTRAK',
-                'PEGAWAI_TETAP': 'Tetap', 'KONTRAK': 'Kontrak', 'MITRA_DOKTER_TAMU': 'Mitra'
+                'Tetap': 'PEGAWAI_TETAP',
+                'Kontrak': 'KONTRAK',
+                'Mitra': 'MITRA_DOKTER_TAMU',
+                'Residen': 'KONTRAK', // Fallback
+                'Magang': 'KONTRAK', // Fallback
+                'PEGAWAI_TETAP': 'Tetap',
+                'KONTRAK': 'Kontrak',
+                'MITRA_DOKTER_TAMU': 'Mitra'
             },
+            // Mapping Profesi (String Frontend -> Enum Backend)
             PROFESI_TO_ENUM: {
-                'Dokter Spesialis': 'DOKTER_SPESIALIS', 'Dokter Umum': 'DOKTER_UMUM',
-                'Dokter Gigi': 'DOKTER_GIGI_DAN_MULUT', 'Perawat': 'PERAWAT', 'Bidan': 'BIDAN',
-                'Farmasi': 'FARMASI', 'Laboratorium': 'LABORATORIUM', 'Radiologi': 'RADIOLOGI',
-                'Gizi': 'GIZI', 'Fisioterapi': 'FISIOTERAPI', 'Rekam Medis': 'REKAM_MEDIS',
-                'Manajemen & Admin': 'MANAJEMEN_DAN_ADMIN', 'Keuangan': 'KEUANGAN',
-                'IT & SIMRS': 'IT_DAN_SIMRS', 'Teknik (IPSRS)': 'IPSRS',
-                'Keamanan': 'KEAMANAN', 'Layanan Umum': 'LAYANAN_UMUM'
+                'Dokter Spesialis': 'DOKTER_SPESIALIS',
+                'Dokter Umum': 'DOKTER_UMUM',
+                'Dokter Gigi': 'DOKTER_GIGI_DAN_MULUT',
+                'Perawat': 'PERAWAT',
+                'Bidan': 'BIDAN',
+                'Farmasi': 'FARMASI',
+                'Laboratorium': 'LABORATORIUM',
+                'Radiologi': 'RADIOLOGI',
+                'Gizi': 'GIZI',
+                'Fisioterapi': 'FISIOTERAPI',
+                'Rekam Medis': 'REKAM_MEDIS',
+                'Manajemen & Admin': 'MANAJEMEN_DAN_ADMIN',
+                'Keuangan': 'KEUANGAN',
+                'IT & SIMRS': 'IT_DAN_SIMRS',
+                'Teknik (IPSRS)': 'IPSRS',
+                'Keamanan': 'KEAMANAN',
+                'Layanan Umum': 'LAYANAN_UMUM'
             },
+            // Mapping Unit Kerja (String Frontend -> Enum Backend)
             UNIT_TO_ENUM: {
                  "Instalasi Gawat Darurat (IGD)": "INSTALASI_GAWAT_DARURAT_IGD",
-                 "Rawat Inap Utama": "RAWAT_INAP", "Rawat Inap (Lt 1)": "RAWAT_INAP",
-                 "Rawat Inap (Lt 2)": "RAWAT_INAP", "Rawat Inap (VIP)": "RAWAT_INAP",
-                 "Poli Umum": "POLI_UMUM", "Poli Gigi & Mulut": "POLI_GIGI_DAN_MULUT",
-                 "Poli Mata": "POLI_MATA", "Poli Penyakit Dalam": "POLI_PENYAKIT_DALAM",
-                 "Poli Kandungan (Obgyn)": "POLI_OBYN", "Poli Anak": "POLI_ANAK",
-                 "Poli Kulit & Kelamin": "POLI_KULIT_DAN_KELAMIN", "Poli THT": "POLI_THT",
-                 "Poli Kejiwaan": "POLI_KEJIWAAN", "Poli Rehabilitasi Medik": "POLI_REHABILITASI_MEDIK",
-                 "Poli Saraf": "POLI_SYARAF", "Poli Orthopedi": "POLI_ORTHOPEDI",
+                 "Rawat Inap Utama": "RAWAT_INAP",
+                 "Rawat Inap (Lt 1)": "RAWAT_INAP",
+                 "Rawat Inap (Lt 2)": "RAWAT_INAP",
+                 "Rawat Inap (VIP)": "RAWAT_INAP",
+                 "Poli Umum": "POLI_UMUM",
+                 "Poli Gigi & Mulut": "POLI_GIGI_DAN_MULUT",
+                 "Poli Mata": "POLI_MATA",
+                 "Poli Penyakit Dalam": "POLI_PENYAKIT_DALAM",
+                 "Poli Kandungan (Obgyn)": "POLI_OBYN",
+                 "Poli Anak": "POLI_ANAK",
+                 "Poli Kulit & Kelamin": "POLI_KULIT_DAN_KELAMIN",
+                 "Poli THT": "POLI_THT",
+                 "Poli Kejiwaan": "POLI_KEJIWAAN",
+                 "Poli Rehabilitasi Medik": "POLI_REHABILITASI_MEDIK",
+                 "Poli Saraf": "POLI_SYARAF",
+                 "Poli Orthopedi": "POLI_ORTHOPEDI",
                  "Poli Bedah Umum": "POLI_BEDAH_UMUM",
                  "ICU / ICCU": "INTENSIVE_CARE_UNIT_ICU_ICCU_HCU_NICU",
-                 "Instalasi Gizi (Dapur)": "GIZI", "Poli Gizi": "GIZI",
+                 "Instalasi Gizi (Dapur)": "GIZI",
+                 "Poli Gizi": "GIZI",
                  "Laboratorium Patologi Klinik": "LABORATORIUM_PATOLOGI_KLINIK",
                  "Laboratorium Patologi Anatomi": "LABORATORIUM_PATOLOGI_ANATOMI",
-                 "Bank Darah": "BANK_DARAH", "Instalasi Radiologi": "RADIOLOGI",
+                 "Bank Darah": "BANK_DARAH",
+                 "Instalasi Radiologi": "RADIOLOGI",
                  "Instalasi Farmasi (Depot Rawat Jalan)": "INSTALASI_FARMASI_RAWAT_JALAN",
                  "Instalasi Farmasi (Depot Rawat Inap)": "INSTALASI_FARMASI_RAWAT_INAP",
-                 "Gudang Farmasi": "INSTALASI_FARMASI_RAWAT_INAP",
-                 "Unit Rehabilitasi Medik": "FISIOTERAPI", "Unit Rekam Medis & Pendaftaran": "REKAM_MEDIS",
+                 "Gudang Farmasi": "INSTALASI_FARMASI_RAWAT_INAP", // Mapping terdekat
+                 "Unit Rehabilitasi Medik": "FISIOTERAPI",
+                 "Unit Rekam Medis & Pendaftaran": "REKAM_MEDIS",
                  "Ruang Server & IT Support": "RUANG_SERVER_DAN_IT_SUPPORT",
-                 "Front Office": "FRONT_OFFICE", "Back Office": "BACK_OFFICE",
-                 "HRD & Diklat": "HRD_DAN_DIKLAT", "Kamar Operasi (IBS)": "KAMAR_OPERASI_IBS",
-                 "Kamar Bersalin (VK)": "KAMAR_BERSALIN", "Ruang Nifas": "KAMAR_BERSALIN",
-                 "Maintenance & Teknisi": "IPSRS", "Pos Security Utama": "KEAMANAN_DAN_KETERTIBAN",
-                 "Pos Security IGD": "KEAMANAN_DAN_KETERTIBAN", "Patroli": "KEAMANAN_DAN_KETERTIBAN",
-                 "Sanitasi & Kebersihan": "SANITASI_DAN_KEBERSIHAN", "Laundry": "LAUNDRY",
-                 "Supir Ambulans": "SUPIR_AMBULANCE", "Cleaning Service": "CLEANING_SERVICE",
-                 "Kasir": "KEUANGAN", "Akuntansi": "KEUANGAN", "Unit Medical Check Up (MCU)": "POLI_UMUM"
+                 "Front Office": "FRONT_OFFICE",
+                 "Back Office": "BACK_OFFICE",
+                 "HRD & Diklat": "HRD_DAN_DIKLAT",
+                 "Kamar Operasi (IBS)": "KAMAR_OPERASI_IBS",
+                 "Kamar Bersalin (VK)": "KAMAR_BERSALIN",
+                 "Ruang Nifas": "KAMAR_BERSALIN", // Mapping terdekat
+                 "Maintenance & Teknisi": "IPSRS",
+                 "Pos Security Utama": "KEAMANAN_DAN_KETERTIBAN",
+                 "Pos Security IGD": "KEAMANAN_DAN_KETERTIBAN",
+                 "Patroli": "KEAMANAN_DAN_KETERTIBAN",
+                 "Sanitasi & Kebersihan": "SANITASI_DAN_KEBERSIHAN",
+                 "Laundry": "LAUNDRY",
+                 "Supir Ambulans": "SUPIR_AMBULANCE",
+                 "Cleaning Service": "CLEANING_SERVICE",
+                 "Kasir": "KEUANGAN",
+                 "Akuntansi": "KEUANGAN",
+                 "Unit Medical Check Up (MCU)": "POLI_UMUM" // Fallback
             }
         };
 
+        // Helper Reverse Mapping (Enum -> Readable String)
         const ENUM_TO_PROFESI = Object.fromEntries(Object.entries(MAPPING.PROFESI_TO_ENUM).map(a => [a[1], a[0]]));
         const ENUM_TO_UNIT = Object.fromEntries(Object.entries(MAPPING.UNIT_TO_ENUM).map(a => [a[1], a[0]]));
 
+        // Mapping Error Code -> Pesan User Friendly
         const ERROR_MESSAGES = {
             "TIDAK_ADA_HEADER": "Sesi Anda telah habis. Silakan login kembali.",
             "EMAIL_KOSONG": "Email tidak boleh kosong.",
@@ -178,6 +228,7 @@
 
         const getFriendlyError = (code) => ERROR_MESSAGES[code] || `Terjadi kesalahan: ${code}`;
 
+        // Helper Determine 'Peran' based on Category
         const getPeranFromCategory = (categoryEnum) => {
             if (['DOKTER_SPESIALIS','DOKTER_UMUM','DOKTER_GIGI_DAN_MULUT'].includes(categoryEnum)) return 'MEDIS';
             if (['PERAWAT','BIDAN'].includes(categoryEnum)) return 'PERAWAT_DAN_BIDAN';
@@ -185,6 +236,7 @@
             return 'PENUNJANG_MEDIS';
         };
 
+        // --- KONFIGURASI KATEGORI PROFESI (Sama seperti sebelumnya) ---
         const JOB_CATEGORIES = {
             MEDIS: ['Dokter Spesialis', 'Dokter Umum', 'Dokter Gigi'],
             KEPERAWATAN: ['Perawat', 'Bidan'],
@@ -192,6 +244,7 @@
             NON_MEDIS: ['Manajemen & Admin', 'Keuangan', 'IT & SIMRS', 'Teknik (IPSRS)', 'Keamanan', 'Layanan Umum']
         };
 
+        // --- MAPPING UNIT KERJA BERDASARKAN KATEGORI ---
         const UNIT_MAPPING = {
             'Dokter Spesialis': ["Poli Penyakit Dalam", "Poli Bedah Umum", "Poli Anak", "Poli Kandungan (Obgyn)", "Poli Mata", "Poli THT", "Poli Saraf", "Poli Jantung", "Poli Kulit & Kelamin", "Poli Kejiwaan", "Poli Rehabilitasi Medik", "Poli Orthopedi", "Rawat Inap Utama", "ICU / ICCU", "Kamar Operasi (IBS)"],
             'Dokter Umum': ["Instalasi Gawat Darurat (IGD)", "Poli Umum", "Unit Medical Check Up (MCU)"],
@@ -212,8 +265,10 @@
             'Layanan Umum': ["Cleaning Service", "Laundry", "Supir Ambulans", "Sanitasi & Kebersihan"]
         };
 
+        const REQUIRED_SIP_DOCS = [...JOB_CATEGORIES.MEDIS, ...JOB_CATEGORIES.KEPERAWATAN, ...JOB_CATEGORIES.PENUNJANG];
+
         // ==========================================
-        // 2. KOMPONEN UTAMA
+        // 2. KOMPONEN LOGIN (AUTH)
         // ==========================================
 
         const BrandSidebar = () => (
@@ -228,12 +283,14 @@
                     </div>
                     <h1 className="text-3xl font-bold tracking-tight">SIMRS <span className="font-light opacity-90">HR</span></h1>
                 </div>
+
                 <div className="relative z-10 space-y-6">
                     <h2 className="text-4xl font-bold leading-tight">Sistem Kepegawaian <br/> Rumah Sakit Terintegrasi.</h2>
                     <p className="text-teal-50 text-lg font-light max-w-md">
                         Kelola akses masuk staf medis dan administrasi dengan aman dan terintegrasi dengan Database.
                     </p>
                 </div>
+
                 <div className="relative z-10 text-xs opacity-60">&copy; 2024 SIMRS HR System.</div>
             </div>
         );
@@ -303,12 +360,16 @@
                         throw new Error(getFriendlyError(data.pesanError) || "Terjadi kesalahan");
                     }
 
+                    // MODIFIED: Menggunakan token dari state, bukan cookie
                     if (data.token) {
+                        // Pass user data dan token ke App
                         onLogin(data.admin || { name: formData.name || 'Admin', email: formData.email }, data.token);
                     } else if (isRegister) {
                         setSuccessMsg("Registrasi Berhasil! Silakan masuk.");
                         setIsRegister(false);
                         setFormData({ name: '', email: '', password: '', confirmPassword: '' });
+                    } else {
+                        setError("Token tidak diterima dari server.");
                     }
                 } catch (err) {
                     setError(err.message);
@@ -376,6 +437,7 @@
             );
         };
 
+        // --- COMPONENTS UTILS ---
         const Modal = ({ isOpen, onClose, title, children, large = false }) => {
             if (!isOpen) return null;
             return (
@@ -391,6 +453,7 @@
             );
         };
 
+        // --- USER SETTINGS MODAL ---
         const UserSettingsModal = ({ isOpen, onClose, user, onLogout, currentTheme, onThemeChange }) => {
             if (!isOpen) return null;
             return (
@@ -426,6 +489,7 @@
             );
         };
 
+        // --- ASISTEN HR CERDAS ---
         const SmartHRAssistant = ({ staffData }) => {
             const [messages, setMessages] = useState([
                 { id: 1, sender: 'bot', text: 'Halo! Saya Asisten HR. Saya bisa membantu mengecek data SIP, statistik, atau pencarian. Apa yang ingin Anda ketahui?', quickReplies: ['Cek SIP Expired', 'Total Dokter', 'Cek Perawat'] }
@@ -509,9 +573,12 @@
             );
         };
 
+        // --- DASHBOARD ---
         const Dashboard = ({ staffData }) => {
             const [modalData, setModalData] = useState({ isOpen: false, title: '', list: [] });
+
             const getStaffByCategory = (cats) => staffData.filter(s => cats.includes(s.category));
+
             const openListModal = (title, dataList) => {
                 setModalData({ isOpen: true, title, list: dataList });
             };
@@ -566,6 +633,7 @@
             );
         };
 
+        // --- STAFF DIRECTORY & CRUD ---
         const StaffForm = ({ staffToEdit, onComplete, onCancel, token }) => {
             const isEdit = !!staffToEdit;
             const [isLoading, setIsLoading] = useState(false);
@@ -580,11 +648,11 @@
 
             useEffect(() => {
                 if (staffToEdit) {
+                    // Populate Form
                     const catString = staffToEdit.category || 'Dokter Umum';
                     const unitList = UNIT_MAPPING[catString] || [];
                     setAvailableUnits(unitList);
                     setFormData({
-                        id: staffToEdit.id,
                         employeeId: staffToEdit.employeeId,
                         name: staffToEdit.name,
                         role: staffToEdit.role,
@@ -622,8 +690,8 @@
                 e.preventDefault();
                 setIsLoading(true);
 
+                // Construct FormData for multipart
                 const data = {
-                    id: formData.id,
                     namaLkG: formData.name,
                     nip: formData.employeeId,
                     jenisKelamin: MAPPING.GENDER[formData.gender] || 'LAKI_LAKI',
@@ -638,6 +706,7 @@
                     sip: sipFile
                 }
 
+                // API Endpoint
                 const endpoint = isEdit ? '/api/staff/' : '/api/staff/';
                 const method = isEdit ? 'PUT' : 'POST';
 
@@ -645,8 +714,9 @@
                     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
                         method: method,
                         headers: {
-                            'Content-Type': 'application/json'
+                            'Content-Type': 'application/json' // Let browser set correct headers
                         },
+                        
                         body: JSON.stringify(data)
                     });
 
@@ -662,6 +732,8 @@
                     setIsLoading(false);
                 }
             };
+
+            const ChevronDownIcon = () => <ChevronRight className="rotate-90 text-gray-400" size={16}/>;
 
             return (
                 <div className="space-y-6 animate-fade-in max-w-5xl mx-auto pb-10">
@@ -728,54 +800,11 @@
             );
         };
 
-        // --- UPDATED STAFF DIRECTORY DENGAN FITUR DELETE ---
-        const StaffDirectory = ({ staffData, onRefresh, onEdit, token }) => {
+        const StaffDirectory = ({ staffData, onRefresh, onEdit }) => {
             const [filter, setFilter] = useState('All');
             const [search, setSearch] = useState('');
             
-            // --- State untuk Hapus ---
-            const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-            const [selectedIdToDelete, setSelectedIdToDelete] = useState(null);
-            const [isDeleting, setIsDeleting] = useState(false);
-
             const filteredData = staffData.filter(staff => (filter === 'All' || staff.category === filter) && (staff.name.toLowerCase().includes(search.toLowerCase()) || staff.unit.toLowerCase().includes(search.toLowerCase())));
-
-            // Trigger Modal Hapus
-            const confirmDelete = (id) => {
-                setSelectedIdToDelete(id);
-                setIsDeleteModalOpen(true);
-            };
-
-            // Logic API Delete
-            const handleDelete = async () => {
-                if (!selectedIdToDelete || !token) return;
-                
-                setIsDeleting(true);
-                try {
-                    const response = await fetch(`${API_BASE_URL}/api/staff/${selectedIdToDelete}`, {
-                        method: 'DELETE',
-                        headers: { 
-                            'x-auth-token': token,
-                            'Content-Type': 'application/json'
-                        }
-                    });
-
-                    if (response.ok) {
-                        alert("Data berhasil dihapus.");
-                        setIsDeleteModalOpen(false);
-                        onRefresh(); // Refresh Data
-                    } else {
-                        const res = await response.json();
-                        alert("Gagal menghapus: " + (res.pesanError || "Terjadi kesalahan"));
-                    }
-                } catch (error) {
-                    console.error("Error deleting:", error);
-                    alert("Gagal menghapus data. Periksa koneksi internet.");
-                } finally {
-                    setIsDeleting(false);
-                    setSelectedIdToDelete(null);
-                }
-            };
 
             return (
                 <div className="space-y-6 animate-fade-in">
@@ -800,11 +829,7 @@
                                             <td className="px-6 py-4"><div className="flex items-center gap-3"><div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-sm ${avatarColor}`}>{staff.name.substring(0,2).toUpperCase()}</div><div><p className="font-bold text-gray-800 dark:text-gray-200 text-sm">{staff.name}</p><p className="text-xs text-gray-400">{staff.category}</p></div></div></td>
                                             <td className="px-6 py-4 align-middle"><p className="text-sm font-bold text-gray-700 dark:text-gray-300">{staff.role}</p><p className="text-xs text-gray-500 dark:text-gray-400">{staff.unit}</p></td>
                                             <td className="px-6 py-4 text-right align-middle">
-                                                <div className="flex justify-end gap-2">
-                                                    <button onClick={() => onEdit(staff)} className="px-3 py-1 bg-blue-50 text-blue-600 rounded text-xs font-bold border border-blue-200 hover:bg-blue-100 flex items-center gap-1"><Edit size={14}/> Edit</button>
-                                                    {/* TOMBOL HAPUS BARU */}
-                                                    <button onClick={() => confirmDelete(staff.id)} className="px-3 py-1 bg-red-50 text-red-600 rounded text-xs font-bold border border-red-200 hover:bg-red-100 flex items-center gap-1"><Trash2 size={14}/> Hapus</button>
-                                                </div>
+                                                <button onClick={() => onEdit(staff)} className="px-3 py-1 bg-blue-50 text-blue-600 rounded text-xs font-bold border border-blue-200 hover:bg-blue-100">Edit</button>
                                             </td>
                                         </tr>
                                     )
@@ -812,234 +837,63 @@
                             </table>
                         </div>
                     </div>
-                    
-                    {/* MODAL KONFIRMASI HAPUS */}
-                    {isDeleteModalOpen && (
-                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fade-in">
-                            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-md p-6 border border-gray-100 dark:border-gray-700">
-                                <div className="text-center">
-                                    <div className="w-16 h-16 bg-red-100 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                                        <AlertTriangle size={32} />
-                                    </div>
-                                    <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-2">Konfirmasi Hapus</h3>
-                                    <p className="text-gray-500 dark:text-gray-400 mb-6">
-                                        Apakah Anda yakin ingin menghapus data pegawai ini? Tindakan ini tidak dapat dibatalkan.
-                                    </p>
-                                    
-                                    <div className="flex gap-3 justify-center">
-                                        <button 
-                                            onClick={() => setIsDeleteModalOpen(false)}
-                                            className="px-5 py-2.5 rounded-xl border border-gray-300 text-gray-700 hover:bg-gray-50 font-bold transition dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700"
-                                            disabled={isDeleting}
-                                        >
-                                            Batal
-                                        </button>
-                                        <button 
-                                            onClick={handleDelete}
-                                            className="px-5 py-2.5 rounded-xl bg-red-600 text-white font-bold hover:bg-red-700 shadow-lg shadow-red-500/30 transition flex items-center gap-2"
-                                            disabled={isDeleting}
-                                        >
-                                            {isDeleting ? 'Menghapus...' : <><Trash2 size={18}/> Ya, Hapus</>}
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    )}
                 </div>
             );
         };
 
-        const PerformanceModule = ({ token }) => {
-            const [localData, setLocalData] = useState([]);
-            const [loading, setLoading] = useState(true);
-            const [selectedId, setSelectedId] = useState(null);
+        const PerformanceModule = ({ staffData }) => {
+            const [selectedId, setSelectedId] = useState(staffData[0]?.id);
+            const staff = staffData.find(s => s.id === parseInt(selectedId));
 
-            useEffect(() => {
-                const fetchData = async () => {
-                    if (!token) return;
-                    try {
-                        setLoading(true);
-                        const response = await fetch(`${API_BASE_URL}/api/kinerjastaff/`, {
-                            headers: { 'x-auth-token': token }
-                        });
-                        const result = await response.json();
-                        const rawList = result.staffList || [];
-                        
-                        const transformed = rawList.map(item => ({
-                            id: item.id,
-                            name: item.namaLkG,
-                            unit: ENUM_TO_UNIT[item.kategoriUnitKerja] || item.kategoriUnitKerja,
-                            role: item.jabatanSpesifik,
-                            kinerjaStaff: item.kinerjaStaff || {}
-                        }));
-
-                        setLocalData(transformed);
-                        if (transformed.length > 0) {
-                            setSelectedId(transformed[0].id);
-                        }
-                    } catch (error) {
-                        console.error("Error fetching performance data:", error);
-                    } finally {
-                        setLoading(false);
-                    }
-                };
-
-                fetchData();
-            }, [token]);
-
-            const staff = localData.find(s => s.id === parseInt(selectedId));
+            // Flatten logic for display
+            // Note: API returns `kinerjaStaff` as object. We will adapt display to it.
             const kinerja = staff?.kinerjaStaff || {};
-            const diklatList = kinerja.diklat || [];
-
-            if (loading) {
-                return (
-                    <div className="h-96 flex items-center justify-center flex-col gap-3 animate-fade-in">
-                        <div className="w-10 h-10 border-4 border-[#17B8A5] border-t-transparent rounded-full animate-spin"></div>
-                        <p className="text-gray-500 dark:text-gray-400 font-medium">Mengambil data kinerja...</p>
-                    </div>
-                );
-            }
 
             return (
-                <div className="space-y-6 animate-fade-in">
-                    <h2 className="text-2xl font-bold text-[#2C2C2C] dark:text-white">Evaluasi Kinerja</h2>
+                <div className="space-y-6 animate-fade-in"><h2 className="text-2xl font-bold text-[#2C2C2C] dark:text-white">Evaluasi Kinerja</h2>
                     <div className="flex flex-col md:flex-row gap-6 h-[calc(100vh-200px)]">
-                        {/* Sidebar List Staff */}
                         <div className="w-full md:w-1/4 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col h-full">
-                            <div className="flex-1 overflow-y-auto p-2 space-y-1">
-                                {localData.map(s => (
-                                    <button key={s.id} onClick={() => setSelectedId(s.id)} className={`w-full text-left p-3 rounded-lg text-sm transition-all duration-200 ${selectedId === s.id ? 'bg-[#17B8A5] text-white shadow-md' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'}`}>
-                                        <div className="font-bold">{s.name}</div>
-                                        <div className={`text-xs ${selectedId === s.id ? 'text-white/80' : 'text-gray-500 dark:text-gray-400'}`}>{s.unit}</div>
-                                    </button>
-                                ))}
-                            </div>
+                            <div className="flex-1 overflow-y-auto p-2 space-y-1">{staffData.map(s => (<button key={s.id} onClick={() => setSelectedId(s.id)} className={`w-full text-left p-3 rounded-lg text-sm transition-all duration-200 ${selectedId === s.id ? 'bg-[#17B8A5] text-white shadow-md' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'}`}><div className="font-bold">{s.name}</div><div className={`text-xs ${selectedId === s.id ? 'text-white/80' : 'text-gray-500 dark:text-gray-400'}`}>{s.unit}</div></button>))}</div>
                         </div>
-
-                        {/* Detail Content */}
-                        <div className="w-full md:w-3/4 flex flex-col h-full bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700 overflow-y-auto">
+                        <div className="w-full md:w-3/4 flex flex-col h-full bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700">
                              {staff ? (
-                                <div className="space-y-8 animate-fade-in">
-                                    <div className="flex justify-between items-center border-b border-gray-100 dark:border-gray-700 pb-4">
-                                        <div>
-                                            <h3 className="text-xl font-bold dark:text-white">{staff.name}</h3>
-                                            <p className="text-sm text-gray-500">{staff.role} - {staff.unit}</p>
-                                        </div>
-                                        <div className="text-right">
-                                            <span className={`px-3 py-1 rounded-full text-xs font-bold ${kinerja.skpPredikat === 'Baik' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
-                                                {kinerja.skpPredikat || 'Belum Dinilai'}
-                                            </span>
-                                        </div>
-                                    </div>
+                                <div className="space-y-6">
+                                    <h3 className="text-xl font-bold dark:text-white">Detail Kinerja: {staff.name}</h3>
                                     
-                                    {/* Indikator Mutu */}
-                                    <div>
-                                        <h4 className="font-bold text-gray-800 dark:text-white mb-4 flex items-center gap-2"><Target size={18}/> Indikator Mutu Unit</h4>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-xl border border-gray-100 dark:border-gray-600">
-                                                <p className="text-xs font-bold uppercase text-gray-500 dark:text-gray-300 mb-3">Waktu Tanggap (Response Time)</p>
-                                                <div className="flex justify-between items-end mb-2">
-                                                    <span className="text-sm text-gray-600 dark:text-gray-400">Target</span>
-                                                    <span className="font-bold dark:text-white">{kinerja.targetTimePasienBaru || '-'}</span>
-                                                </div>
-                                                <div className="flex justify-between items-end mb-2">
-                                                    <span className="text-sm text-gray-600 dark:text-gray-400">Realisasi</span>
-                                                    <span className="font-bold text-[#17B8A5] text-lg">{kinerja.realisasiTimePasienBaru || '-'}</span>
-                                                </div>
-                                                <div className="w-full bg-gray-200 rounded-full h-1.5 dark:bg-gray-600 mt-2">
-                                                    <div className="bg-[#17B8A5] h-1.5 rounded-full" style={{width: kinerja.capaianTimePasienBaru || '0%'}}></div>
-                                                </div>
-                                                <p className="text-right text-xs text-[#17B8A5] mt-1 font-bold">{kinerja.capaianTimePasienBaru || '0%'} Tercapai</p>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                                            <p className="text-xs font-bold uppercase text-gray-500 dark:text-gray-300">Respon Time Pasien</p>
+                                            <div className="flex justify-between mt-2">
+                                                <span>Target: {kinerja.targetTimePasienBaru || '-'}</span>
+                                                <span className="font-bold text-[#17B8A5]">{kinerja.realisasiTimePasienBaru || '-'}</span>
                                             </div>
-
-                                             <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-xl border border-gray-100 dark:border-gray-600">
-                                                <p className="text-xs font-bold uppercase text-gray-500 dark:text-gray-300 mb-3">Kepuasan Pasien</p>
-                                                <div className="flex justify-between items-end mb-2">
-                                                    <span className="text-sm text-gray-600 dark:text-gray-400">Target</span>
-                                                    <span className="font-bold dark:text-white">{kinerja.targetKepuasanPasien || '-'}</span>
-                                                </div>
-                                                <div className="flex justify-between items-end mb-2">
-                                                    <span className="text-sm text-gray-600 dark:text-gray-400">Realisasi</span>
-                                                    <span className="font-bold text-[#17B8A5] text-lg">{kinerja.realisasiKepuasanPasien || '-'}</span>
-                                                </div>
-                                                <div className="w-full bg-gray-200 rounded-full h-1.5 dark:bg-gray-600 mt-2">
-                                                    <div className="bg-[#17B8A5] h-1.5 rounded-full" style={{width: '100%'}}></div> 
-                                                </div>
-                                                <p className="text-right text-xs text-[#17B8A5] mt-1 font-bold">{kinerja.capaianKepuasanPasien || '0%'} Tercapai</p>
+                                        </div>
+                                         <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                                            <p className="text-xs font-bold uppercase text-gray-500 dark:text-gray-300">Kepuasan Pasien</p>
+                                            <div className="flex justify-between mt-2">
+                                                <span>Target: {kinerja.targetKepuasanPasien || '-'}</span>
+                                                <span className="font-bold text-[#17B8A5]">{kinerja.realisasiKepuasanPasien || '-'}</span>
                                             </div>
                                         </div>
                                     </div>
 
-                                    {/* Perilaku & SKP */}
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div>
-                                            <h4 className="font-bold text-gray-800 dark:text-white mb-3 flex items-center gap-2"><UserCheck size={18}/> Perilaku Kerja</h4>
-                                            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
-                                                <div className="flex justify-between p-3 border-b border-gray-100 dark:border-gray-700">
-                                                    <span className="text-sm text-gray-600 dark:text-gray-300">Integritas</span>
-                                                    <span className="font-bold text-gray-800 dark:text-white">{kinerja.integritas || '-'}</span>
-                                                </div>
-                                                <div className="flex justify-between p-3">
-                                                    <span className="text-sm text-gray-600 dark:text-gray-300">Disiplin</span>
-                                                    <span className="font-bold text-gray-800 dark:text-white">{kinerja.disiplin || '-'}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div>
-                                            <h4 className="font-bold text-gray-800 dark:text-white mb-3 flex items-center gap-2"><FileBarChart size={18}/> Sasaran Kinerja Pegawai (SKP)</h4>
-                                            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden p-3 space-y-2">
-                                                <div className="flex justify-between">
-                                                    <span className="text-sm text-gray-600 dark:text-gray-300">Nilai TKP</span>
-                                                    <span className="font-bold text-gray-800 dark:text-white">{kinerja.skpTKP || '-'}</span>
-                                                </div>
-                                                <div className="flex justify-between">
-                                                    <span className="text-sm text-gray-600 dark:text-gray-300">Realisasi SKP</span>
-                                                    <span className="font-bold text-gray-800 dark:text-white">{kinerja.skpRealisasi || '-'}</span>
-                                                </div>
-                                                <div className="mt-2 pt-2 border-t border-gray-100 dark:border-gray-700 flex justify-between items-center">
-                                                    <span className="text-xs font-bold uppercase text-gray-500">Predikat Akhir</span>
-                                                    <span className="px-3 py-1 bg-blue-50 text-blue-600 rounded-lg text-sm font-bold">{kinerja.skpPredikat || '-'}</span>
-                                                </div>
-                                            </div>
+                                    <div>
+                                        <h4 className="font-bold mb-2 dark:text-white">Perilaku Kerja</h4>
+                                        <div className="space-y-2">
+                                            <div className="flex justify-between border-b py-2 dark:border-gray-600 dark:text-gray-300"><span>Integritas</span><span>{kinerja.integritas || '-'}</span></div>
+                                            <div className="flex justify-between border-b py-2 dark:border-gray-600 dark:text-gray-300"><span>Disiplin</span><span>{kinerja.disiplin || '-'}</span></div>
                                         </div>
                                     </div>
 
-                                    {/* Riwayat Diklat */}
-                                    <div>
-                                        <h4 className="font-bold text-gray-800 dark:text-white mb-3 flex items-center gap-2"><GraduationCap size={18}/> Riwayat Pengembangan Kompetensi (Diklat)</h4>
-                                        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
-                                            <table className="w-full text-sm text-left">
-                                                <thead className="bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-300 font-bold border-b border-gray-200 dark:border-gray-600">
-                                                    <tr>
-                                                        <th className="p-3">Nama Kegiatan</th>
-                                                        <th className="p-3">Tanggal</th>
-                                                        <th className="p-3">Jenis</th>
-                                                        <th className="p-3 text-right">Durasi</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                                                    {diklatList.length > 0 ? (
-                                                        diklatList.map((d, idx) => (
-                                                            <tr key={idx} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                                                                <td className="p-3 font-medium text-gray-800 dark:text-white">{d.namaKegiatan}</td>
-                                                                <td className="p-3 text-gray-600 dark:text-gray-300">{d.tanggal}</td>
-                                                                <td className="p-3"><span className="px-2 py-0.5 rounded text-xs bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-300 font-bold">{d.jenis}</span></td>
-                                                                <td className="p-3 text-gray-600 dark:text-gray-300 text-right">{d.durasi}</td>
-                                                            </tr>
-                                                        ))
-                                                    ) : (
-                                                        <tr>
-                                                            <td colSpan="4" className="p-4 text-center text-gray-400">Belum ada data diklat.</td>
-                                                        </tr>
-                                                    )}
-                                                </tbody>
-                                            </table>
+                                     <div>
+                                        <h4 className="font-bold mb-2 dark:text-white">SKP</h4>
+                                        <div className="flex gap-4">
+                                            <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-bold">Predikat: {kinerja.skpPredikat || '-'}</span>
+                                            <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-bold">Realisasi: {kinerja.skpRealisasi || '-'}</span>
                                         </div>
                                     </div>
                                 </div>
-                             ) : <div className="flex h-full items-center justify-center text-gray-400 flex-col gap-2"><User size={48} className="opacity-20"/><p>Pilih pegawai untuk melihat detail kinerja.</p></div>}
+                             ) : <p className="text-gray-400">Pilih pegawai.</p>}
                         </div>
                     </div>
                 </div>
@@ -1083,7 +937,7 @@
             const [isSettingsOpen, setIsSettingsOpen] = useState(false);
             const [theme, setTheme] = useState('light');
             const [user, setUser] = useState(null);
-            const [token, setToken] = useState(null); 
+            const [token, setToken] = useState(null); // TOKEN disimpan di State
             const [editingStaff, setEditingStaff] = useState(null); 
 
             // Fetch Staff Data
@@ -1096,24 +950,22 @@
                         headers: { 'x-auth-token': authToken }
                     });
                     const result = await response.json();
-                    
-                    const rawData = result.staffList || []; 
-                    
-                    if(Array.isArray(rawData)) {
-                        const transformed = rawData
+                    console.log("Data staff diterima:", result);
+                    if(Array.isArray(result)) {
+                        const transformed = result
                         .filter(item => !item.deletedAt)
                         .map(item => ({
                             id: item.id,
-                            employeeId: item.nip, 
-                            name: item.namaLkG,
-                            role: item.jabatanSpesifik,
-                            category: ENUM_TO_PROFESI[item.kategoriProfesi] || item.kategoriProfesi, 
+                            nip: item.nip,
+                            nama: item.namaLkG,
+                            jabatanSpesifikle: item.jabatanSpesifik,
                             unit: ENUM_TO_UNIT[item.kategoriUnitKerja] || item.kategoriUnitKerja,
-                            status: MAPPING.STATUS[item.statusKepegawaian] || item.statusKepegawaian,
+                            kategoriUnitKerja: ENUM_TO_PROFESI[item.kategoriProfesi] || item.kategoriProfesi,
+                            statusKepegawaian: MAPPING.STATUS[item.statusKepegawaian] || item.statusKepegawaian,
                             email: item.email,
-                            phone: item.noTelp,
-                            address: item.alamat,
-                            gender: MAPPING.GENDER[item.jenisKelamin] || 'Laki-laki',
+                            noTelp: item.noTelp,
+                            alamat: item.alamat,
+                            jenisKelamin: MAPPING.GENDER[item.jenisKelamin],
                             sipUrl: item.sipUrl,
                             kinerjaStaff: item.kinerjaStaff || {}
                         }));
@@ -1127,6 +979,7 @@
             const handleLogin = (userData, userToken) => {
                 setUser(userData);
                 setToken(userToken);
+                // Langsung fetch data setelah login sukses
                 fetchStaffData(userToken);
             };
 
@@ -1157,13 +1010,10 @@
                     <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} onOpenSettings={() => setIsSettingsOpen(true)} user={user} />
                     <main className="flex-1 p-8 h-screen overflow-y-auto">
                         {activeTab === 'dashboard' && <Dashboard staffData={staffData} />}
-                        
-                        {/* Di sini token dipassing ke StaffDirectory */}
-                        {activeTab === 'directory' && <StaffDirectory staffData={staffData} token={token} onRefresh={() => fetchStaffData()} onEdit={handleEditStart} />}
-                        
+                        {activeTab === 'directory' && <StaffDirectory staffData={staffData} onRefresh={() => fetchStaffData()} onEdit={handleEditStart} />}
                         {activeTab === 'crud' && (
                             <StaffForm 
-                                token={token} 
+                                token={token} // Pass token sebagai prop
                                 staffToEdit={editingStaff}
                                 onComplete={() => {
                                     fetchStaffData();
@@ -1176,7 +1026,7 @@
                                 }}
                             />
                         )}
-                        {activeTab === 'performance' && <PerformanceModule token={token} />}
+                        {activeTab === 'performance' && <PerformanceModule staffData={staffData} />}
                         {activeTab === 'assistant' && <SmartHRAssistant staffData={staffData} />}
                     </main>
                     <UserSettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} currentTheme={theme} onThemeChange={handleThemeChange} user={user} onLogout={handleLogout} />
